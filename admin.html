@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbrella — Admin Panel</title>
+
+    <style>
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        background-color: #0a0f1e;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+      }
+
+      .navbar {
+        background-color: #111827;
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #1e3a5f;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #38bdf8;
+        letter-spacing: 2px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 32px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 14px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .nav-links a:hover { color: #38bdf8; }
+
+      .content { padding: 32px; }
+
+      .page-title {
+        font-size: 20px;
+        color: #38bdf8;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .page-subtitle {
+        color: #94a3b8;
+        font-size: 13px;
+        margin-bottom: 32px;
+      }
+
+      /* Two column layout */
+      .layout {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 32px;
+        align-items: start;
+      }
+
+      /* Add village form */
+      .form-card {
+        background-color: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 10px;
+        padding: 24px;
+      }
+
+      .form-title {
+        font-size: 14px;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #1e3a5f;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: block;
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 10px 12px;
+        background-color: #1e293b;
+        border: 1px solid #1e3a5f;
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: 14px;
+      }
+
+      input:focus, select:focus {
+        outline: none;
+        border-color: #38bdf8;
+      }
+
+      select option { background-color: #1e293b; }
+
+      .checkbox-group {
+        display: flex;
+        gap: 24px;
+        margin-top: 4px;
+      }
+
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #e2e8f0;
+        cursor: pointer;
+      }
+
+      .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #38bdf8;
+        color: #0a0f1e;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 8px;
+      }
+
+      .submit-btn:hover {
+        background-color: #7dd3fc;
+      }
+
+      /* Status message */
+      .status-msg {
+        margin-top: 12px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        display: none;
+      }
+
+      .status-msg.success {
+        background-color: rgba(34,197,94,0.15);
+        border: 1px solid #22c55e;
+        color: #22c55e;
+        display: block;
+      }
+
+      .status-msg.error {
+        background-color: rgba(239,68,68,0.15);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        display: block;
+      }
+
+      /* Village table */
+      .table-card {
+        background-color: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .table-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #1e3a5f;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .table-title {
+        font-size: 14px;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .village-count {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th {
+        padding: 12px 16px;
+        text-align: left;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+        font-weight: normal;
+        background-color: #1e293b;
+        border-bottom: 1px solid #1e3a5f;
+      }
+
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #0f172a;
+        color: #e2e8f0;
+        vertical-align: middle;
+      }
+
+      tr:hover td { background-color: #1e293b; }
+      tr:last-child td { border-bottom: none; }
+
+      .delete-btn {
+        padding: 4px 12px;
+        background-color: rgba(239,68,68,0.15);
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .delete-btn:hover {
+        background-color: #ef4444;
+        color: #ffffff;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      .tag-both  { background: rgba(239,68,68,0.15);  color: #ef4444; }
+      .tag-glof  { background: rgba(56,189,248,0.15); color: #38bdf8; }
+      .tag-flood { background: rgba(99,102,241,0.15); color: #818cf8; }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <nav class="navbar">
+      <div class="logo">☂ UMBRELLA</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="map.html">Risk Map</a></li>
+        <li><a href="vulnerability.html">Vulnerability Scorer</a></li>
+        <li><a href="resources.html">Resource Recommender</a></li>
+        <li><a href="admin.html" style="color:#38bdf8">Admin</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <h2 class="page-title">⚙ Admin Panel</h2>
+      <p class="page-subtitle">
+        Add, edit or remove villages from the database
+      </p>
+
+      <div class="layout">
+
+        <!-- ADD VILLAGE FORM -->
+        <div class="form-card">
+          <div class="form-title">➕ Add New Village</div>
+
+          <div class="form-group">
+            <label>Village Name</label>
+            <input type="text" id="f-name"
+              placeholder="e.g. Harsil">
+          </div>
+
+          <div class="form-group">
+            <label>District</label>
+            <select id="f-district">
+              <option value="Uttarkashi">Uttarkashi</option>
+              <option value="Chamoli">Chamoli</option>
+              <option value="Rudraprayag">Rudraprayag</option>
+              <option value="Tehri Garhwal">Tehri Garhwal</option>
+              <option value="Pithoragarh">Pithoragarh</option>
+              <option value="Haridwar">Haridwar</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Population</label>
+            <input type="number" id="f-population"
+              placeholder="e.g. 2500">
+          </div>
+
+          <div class="form-group">
+            <label>GLOF Travel Time (minutes)</label>
+            <input type="number" id="f-travel-time"
+              placeholder="e.g. 35">
+          </div>
+
+          <div class="form-group">
+            <label>Threat Type</label>
+            <select id="f-threat-type">
+              <option value="BOTH">⚡ GLOF + Flood</option>
+              <option value="GLOF">❄ GLOF Only</option>
+              <option value="FLOOD">🌧 Flood Only</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Additional Factors</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="f-road-safe">
+                Road Safe
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="f-historical">
+                Historical Event
+              </label>
+            </div>
+          </div>
+
+          <button class="submit-btn" onclick="addVillage()">
+            Save to Database
+          </button>
+
+          <div class="status-msg" id="status-msg"></div>
+
+        </div>
+
+        <!-- VILLAGE TABLE -->
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">📋 All Villages</span>
+            <span class="village-count" id="village-count">
+              Loading...
+            </span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Village</th>
+                <th>District</th>
+                <th>Population</th>
+                <th>Travel Time</th>
+                <th>Threat</th>
+                <th>Road Safe</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr>
+                <td colspan="8"
+                  style="text-align:center;padding:24px;color:#4b5563;">
+                  Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <script>
+
+      // =============================================
+      // LOAD VILLAGES ON PAGE LOAD
+      // =============================================
+
+      function loadVillages() {
+        fetch("http://localhost:5001/admin/villages")
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var villages = data.villages;
+            document.getElementById('village-count').innerText =
+              villages.length + ' villages in database';
+            buildTable(villages);
+          })
+          .catch(function() {
+            document.getElementById('village-count').innerText =
+              'Server offline';
+          });
+      }
+
+      loadVillages();
+
+
+      // =============================================
+      // BUILD TABLE
+      // =============================================
+
+      function buildTable(villages) {
+        var tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        if (villages.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" ' +
+            'style="text-align:center;padding:24px;color:#4b5563;">' +
+            'No villages in database</td></tr>';
+          return;
+        }
+
+        villages.forEach(function(v) {
+          var tagClass = v.threat_type === 'BOTH'  ? 'tag-both'
+                       : v.threat_type === 'GLOF'  ? 'tag-glof'
+                       : 'tag-flood';
+
+          var roadSafe = v.road_safe
+            ? '<span style="color:#22c55e">✓ Yes</span>'
+            : '<span style="color:#ef4444">✗ No</span>';
+
+          var ttDisplay = v.travel_time === 999
+            ? 'N/A' : v.travel_time + ' mins';
+
+          tbody.innerHTML +=
+            '<tr>' +
+              '<td style="color:#4b5563">' + v.id + '</td>' +
+              '<td><b>' + v.name + '</b></td>' +
+              '<td style="color:#94a3b8">' + v.district + '</td>' +
+              '<td>' + v.population.toLocaleString() + '</td>' +
+              '<td>' + ttDisplay + '</td>' +
+              '<td><span class="tag ' + tagClass + '">' +
+                v.threat_type + '</span></td>' +
+              '<td>' + roadSafe + '</td>' +
+              '<td>' +
+                '<button class="delete-btn" ' +
+                  'onclick="deleteVillage(' + v.id + ', \'' +
+                  v.name + '\')">' +
+                  'Delete' +
+                '</button>' +
+              '</td>' +
+            '</tr>';
+        });
+      }
+
+
+      // =============================================
+      // ADD VILLAGE
+      // =============================================
+
+      function addVillage() {
+
+        var name        = document.getElementById('f-name').value.trim();
+        var district    = document.getElementById('f-district').value;
+        var population  = document.getElementById('f-population').value;
+        var travelTime  = document.getElementById('f-travel-time').value;
+        var threatType  = document.getElementById('f-threat-type').value;
+        var roadSafe    = document.getElementById('f-road-safe').checked;
+        var historical  = document.getElementById('f-historical').checked;
+        var statusEl    = document.getElementById('status-msg');
+
+        // Basic validation
+        if (!name || !population || !travelTime) {
+          statusEl.className  = 'status-msg error';
+          statusEl.innerText  = '⚠ Please fill in all fields';
+          return;
+        }
+
+        // Send to Flask backend
+        fetch("http://localhost:5000/admin/add-village", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name:             name,
+            district:         district,
+            population:       population,
+            travel_time:      travelTime,
+            threat_type:      threatType,
+            road_safe:        roadSafe ? 1 : 0,
+            historical_event: historical ? 1 : 0
+          })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.status === "success") {
+            statusEl.className = 'status-msg success';
+            statusEl.innerText = '✓ ' + data.message;
+
+            // Clear the form
+            document.getElementById('f-name').value       = '';
+            document.getElementById('f-population').value = '';
+            document.getElementById('f-travel-time').value = '';
+            document.getElementById('f-road-safe').checked  = false;
+            document.getElementById('f-historical').checked = false;
+
+            // Refresh the table
+            loadVillages();
+          }
+        })
+        .catch(function() {
+          statusEl.className = 'status-msg error';
+          statusEl.innerText = '⚠ Server offline — run python3 server.py';
+        });
+      }
+
+
+      // =============================================
+      // DELETE VILLAGE
+      // =============================================
+
+      function deleteVillage(id, name) {
+        if (!confirm('Delete ' + name + ' from the database?')) return;
+
+        fetch("http://localhost:5000/admin/delete-village/" + id, {
+          method: "DELETE"
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.status === "success") {
+            loadVillages();
+          }
+        });
+      }
+
+    </script>
+
+  </body>
+
+</html>
