@@ -403,7 +403,7 @@
       // =============================================
 
       function loadVillages() {
-        fetch("http://localhost:5001/admin/villages")
+        fetch("https://web-production-517aa.up.railway.app")
           .then(function(r) { return r.json(); })
           .then(function(data) {
             var villages = data.villages;
