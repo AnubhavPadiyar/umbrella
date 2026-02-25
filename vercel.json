@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "*.html", "use": "@vercel/static" }
-  ],
+  "outputDirectory": ".",
   "routes": [
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/map.html", "dest": "/map.html" },
+    { "src": "/vulnerability.html", "dest": "/vulnerability.html" },
+    { "src": "/resources.html", "dest": "/resources.html" },
+    { "src": "/admin.html", "dest": "/admin.html" }
   ]
 }
