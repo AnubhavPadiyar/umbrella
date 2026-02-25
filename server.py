@@ -234,4 +234,6 @@ if __name__ == "__main__":
     print("  Villages: http://localhost:5000/villages")
     print("=" * 45)
 
-    app.run(debug=True, port=5001)
+    import os
+port = int(os.environ.get("PORT", 5001))
+app.run(host="0.0.0.0", debug=False, port=port)
