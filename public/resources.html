@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbrella — Resource Recommender</title>
+
+    <!-- jsPDF library — this generates the PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: #0a0f1e;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+      }
+
+      .navbar {
+        background-color: #111827;
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #1e3a5f;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #38bdf8;
+        letter-spacing: 2px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 32px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 14px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .nav-links a:hover {
+        color: #38bdf8;
+      }
+
+      .content {
+        padding: 32px;
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+      }
+
+      .page-title {
+        font-size: 20px;
+        color: #38bdf8;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .page-subtitle {
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      /* Top action buttons */
+      .top-actions {
+        display: flex;
+        gap: 12px;
+      }
+
+      .action-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .btn-pdf {
+        background-color: #ef4444;
+        color: #ffffff;
+      }
+
+      .btn-pdf:hover {
+        background-color: #dc2626;
+      }
+
+      .btn-whatsapp {
+        background-color: #22c55e;
+        color: #ffffff;
+      }
+
+      .btn-whatsapp:hover {
+        background-color: #16a34a;
+      }
+
+      /* Resource tracker cards */
+      .resource-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .resource-card {
+        background-color: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 10px;
+        padding: 20px;
+      }
+
+      .resource-card-title {
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+      }
+
+      .resource-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+
+      .resource-name {
+        color: #e2e8f0;
+      }
+
+      .resource-count {
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .available { color: #22c55e; }
+      .deployed  { color: #f97316; }
+      .critical  { color: #ef4444; }
+
+      /* District action cards */
+      .district-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+
+      .district-card {
+        background-color: #111827;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .district-card-header {
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .district-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffffff;
+      }
+
+      .priority-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+
+      .p1 {
+        background-color: rgba(239,68,68,0.2);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+      }
+
+      .p2 {
+        background-color: rgba(249,115,22,0.2);
+        color: #f97316;
+        border: 1px solid #f97316;
+      }
+
+      .p3 {
+        background-color: rgba(34,197,94,0.2);
+        color: #22c55e;
+        border: 1px solid #22c55e;
+      }
+
+      .district-card-body {
+        padding: 0 20px 16px;
+      }
+
+      /* Checklist items */
+      .checklist-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #0f172a;
+        cursor: pointer;
+      }
+
+      .checklist-item:last-child {
+        border-bottom: none;
+      }
+
+      .checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #1e3a5f;
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-top: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .checkbox.checked {
+        background-color: #22c55e;
+        border-color: #22c55e;
+      }
+
+      .checkbox.checked::after {
+        content: '✓';
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .checklist-text {
+        font-size: 13px;
+        color: #e2e8f0;
+        line-height: 1.5;
+      }
+
+      .checklist-text.done {
+        color: #4b5563;
+        text-decoration: line-through;
+      }
+
+      .checklist-meta {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      /* WhatsApp modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-overlay.visible {
+        display: flex;
+      }
+
+      .modal {
+        background-color: #111827;
+        border: 1px solid #1e3a5f;
+        border-radius: 12px;
+        padding: 32px;
+        width: 560px;
+        max-width: 90vw;
+      }
+
+      .modal-title {
+        font-size: 16px;
+        color: #38bdf8;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+      .message-box {
+        background-color: #0a0f1e;
+        border: 1px solid #1e3a5f;
+        border-radius: 8px;
+        padding: 16px;
+        font-size: 13px;
+        color: #e2e8f0;
+        line-height: 1.8;
+        margin-bottom: 8px;
+        white-space: pre-line;
+      }
+
+      .message-label {
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        margin-top: 16px;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .modal-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn-copy {
+        background-color: #1e293b;
+        color: #38bdf8;
+        border: 1px solid #38bdf8;
+      }
+
+      .btn-close {
+        background-color: #1e293b;
+        color: #94a3b8;
+        border: 1px solid #1e3a5f;
+      }
+
+      .btn-send {
+        background-color: #22c55e;
+        color: #ffffff;
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <nav class="navbar">
+      <div class="logo">☂ UMBRELLA</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="map.html">Risk Map</a></li>
+        <li><a href="vulnerability.html">Vulnerability Scorer</a></li>
+        <li><a href="resources.html">Resource Recommender</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">⚡ Resource Recommender</h2>
+          <p class="page-subtitle">
+            Auto-generated action plan based on current risk scores
+            — Uttarakhand Districts
+          </p>
+        </div>
+        <div class="top-actions">
+          <button class="action-btn btn-whatsapp"
+            onclick="openWhatsApp()">
+            📱 Generate Alert Message
+          </button>
+          <button class="action-btn btn-pdf"
+            onclick="generatePDF()">
+            📄 Export Situation Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Resource Tracker -->
+      <div class="resource-grid">
+
+        <div class="resource-card">
+          <div class="resource-card-title">🪖 NDRF Teams</div>
+          <div class="resource-row">
+            <span class="resource-name">Available</span>
+            <span class="resource-count available">6</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Deployed</span>
+            <span class="resource-count deployed">4</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Required</span>
+            <span class="resource-count critical">8</span>
+          </div>
+        </div>
+
+        <div class="resource-card">
+          <div class="resource-card-title">🏕 Relief Camps</div>
+          <div class="resource-row">
+            <span class="resource-name">Total Camps</span>
+            <span class="resource-count available">24</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Open</span>
+            <span class="resource-count deployed">8</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Capacity Left</span>
+            <span class="resource-count available">12,400</span>
+          </div>
+        </div>
+
+        <div class="resource-card">
+          <div class="resource-card-title">🚁 Helicopters</div>
+          <div class="resource-row">
+            <span class="resource-name">IAF Available</span>
+            <span class="resource-count available">3</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Deployed</span>
+            <span class="resource-count deployed">2</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">On Standby</span>
+            <span class="resource-count available">1</span>
+          </div>
+        </div>
+
+        <div class="resource-card">
+          <div class="resource-card-title">🏥 Hospitals</div>
+          <div class="resource-row">
+            <span class="resource-name">Alerted</span>
+            <span class="resource-count deployed">5</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">Beds Available</span>
+            <span class="resource-count available">840</span>
+          </div>
+          <div class="resource-row">
+            <span class="resource-name">ICU Beds</span>
+            <span class="resource-count available">48</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- District Action Cards -->
+      <div class="district-grid" id="district-grid">
+        <!-- Built by JavaScript below -->
+      </div>
+
+    </div>
+
+    <!-- WhatsApp Alert Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-title">📱 Emergency Alert Message</div>
+
+        <div class="message-label">English</div>
+        <div class="message-box" id="msg-english"></div>
+
+        <div class="message-label">Hindi</div>
+        <div class="message-box" id="msg-hindi"></div>
+
+        <div class="modal-actions">
+          <button class="modal-btn btn-copy"
+            onclick="copyMessage()">
+            Copy Message
+          </button>
+          <button class="modal-btn btn-send"
+            onclick="sendWhatsApp()">
+            Open WhatsApp
+          </button>
+          <button class="modal-btn btn-close"
+            onclick="closeModal()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+
+      // =============================================
+      // DISTRICT DATA
+      // Priority level + action checklist per district
+      // =============================================
+
+      var districts = [
+        {
+          name:     "Chamoli",
+          priority: "P1",
+          threat:   "GLOF + Flood",
+          score:    92,
+          villages: ["Joshimath", "Raini", "Tapovan", "Badrinath"],
+          actions: [
+            {
+              text: "Pre-position 2 NDRF teams at Joshimath base",
+              meta: "Nearest team: Dehradun — 6hr road travel",
+              done: false
+            },
+            {
+              text: "Open relief camps at Pipalkoti and Nandprayag",
+              meta: "Combined capacity: 3,200 persons",
+              done: false
+            },
+            {
+              text: "Alert AIIMS Rishikesh — mass casualty protocol",
+              meta: "140km downstream — 3hr ambulance route",
+              done: false
+            },
+            {
+              text: "Issue evacuation advisory for Raini and Tapovan",
+              meta: "Combined population: 800 — road blocked if flood hits",
+              done: false
+            },
+            {
+              text: "Deploy IAF helicopter for aerial reconnaissance",
+              meta: "Satopanth and Vasuki Tal lake levels to be verified",
+              done: false
+            }
+          ]
+        },
+        {
+          name:     "Uttarkashi",
+          priority: "P1",
+          threat:   "GLOF + Flood",
+          score:    88,
+          villages: ["Gangotri", "Dharali", "Uttarkashi Town"],
+          actions: [
+            {
+              text: "Issue GLOF warning for Bhagirathi valley corridor",
+              meta: "Dokriani Lake at HIGH risk — 18min travel time to Gangotri",
+              done: false
+            },
+            {
+              text: "Pre-position SDRF team at Uttarkashi town",
+              meta: "River Bhagirathi gauge at 85% flood stage",
+              done: false
+            },
+            {
+              text: "Evacuate Dharali village to Bhatwari relief camp",
+              meta: "Population 2,100 — road viable for next 4hrs only",
+              done: false
+            },
+            {
+              text: "Alert Uttarkashi District Hospital",
+              meta: "Request 40 additional beds from Dehradun",
+              done: false
+            }
+          ]
+        },
+        {
+          name:     "Rudraprayag",
+          priority: "P1",
+          threat:   "GLOF + Flood",
+          score:    85,
+          villages: ["Kedarnath", "Govindghat"],
+          actions: [
+            {
+              text: "Halt all Kedarnath yatra immediately",
+              meta: "Chorabari Lake at HIGH risk — 23min travel time",
+              done: false
+            },
+            {
+              text: "Deploy helicopter evacuation for stranded pilgrims",
+              meta: "Estimated 3,000 pilgrims currently on route",
+              done: false
+            },
+            {
+              text: "Open Guptkashi relief camp — maximum capacity",
+              meta: "Capacity: 5,000 persons",
+              done: false
+            },
+            {
+              text: "Alert Mandakini river monitoring stations",
+              meta: "Downstream Agastmuni and Rudraprayag towns on watch",
+              done: false
+            }
+          ]
+        },
+        {
+          name:     "Tehri Garhwal",
+          priority: "P2",
+          threat:   "Flood",
+          score:    62,
+          villages: ["Ghansali", "New Tehri"],
+          actions: [
+            {
+              text: "Monitor Tehri Dam discharge levels",
+              meta: "Bhagirathi + Bhilangna inflow increasing",
+              done: false
+            },
+            {
+              text: "Alert downstream villages along Ganga corridor",
+              meta: "Rishikesh and Haridwar on flood watch",
+              done: false
+            },
+            {
+              text: "Standby NDRF team at Rishikesh",
+              meta: "Pre-position boats and rescue equipment",
+              done: false
+            }
+          ]
+        },
+        {
+          name:     "Pithoragarh",
+          priority: "P2",
+          threat:   "GLOF",
+          score:    58,
+          villages: ["Munsiyari", "Dharchula"],
+          actions: [
+            {
+              text: "Monitor Milam Glacier Lake water levels",
+              meta: "Currently MEDIUM risk — satellite update due 0600hrs",
+              done: false
+            },
+            {
+              text: "Alert Kali river basin villages",
+              meta: "Dharchula and Jauljibi on flood watch",
+              done: false
+            }
+          ]
+        },
+        {
+          name:     "Haridwar",
+          priority: "P3",
+          threat:   "Flood",
+          score:    31,
+          villages: ["Haridwar", "Roorkee"],
+          actions: [
+            {
+              text: "Monitor Ganga river gauge at Haridwar",
+              meta: "Currently at 40% flood stage — watch only",
+              done: false
+            },
+            {
+              text: "Put river ghats on standby alert",
+              meta: "Crowd management protocol if water rises",
+              done: false
+            }
+          ]
+        }
+      ];
+
+
+      // =============================================
+      // BUILD DISTRICT ACTION CARDS
+      // =============================================
+
+      function buildDistrictCards() {
+
+        var grid = document.getElementById('district-grid');
+        grid.innerHTML = '';
+
+        districts.forEach(function(district, districtIndex) {
+
+          var priorityClass = district.priority === 'P1' ? 'p1'
+                            : district.priority === 'P2' ? 'p2'
+                            : 'p3';
+
+          var headerColor = district.priority === 'P1' ? '#ef444420'
+                          : district.priority === 'P2' ? '#f9731620'
+                          : '#22c55e20';
+
+          var borderColor = district.priority === 'P1' ? '#ef4444'
+                          : district.priority === 'P2' ? '#f97316'
+                          : '#22c55e';
+
+          // Build checklist HTML
+          var checklistHTML = '';
+          district.actions.forEach(function(action, actionIndex) {
+            checklistHTML +=
+              '<div class="checklist-item" ' +
+                'onclick="toggleCheck(' + districtIndex + ',' + actionIndex + ')" ' +
+                'id="item-' + districtIndex + '-' + actionIndex + '">' +
+                '<div class="checkbox" id="cb-' + districtIndex + '-' + actionIndex + '"></div>' +
+                '<div>' +
+                  '<div class="checklist-text" ' +
+                    'id="ct-' + districtIndex + '-' + actionIndex + '">' +
+                    action.text +
+                  '</div>' +
+                  '<div class="checklist-meta">' + action.meta + '</div>' +
+                '</div>' +
+              '</div>';
+          });
+
+          var card =
+            '<div class="district-card" ' +
+              'style="border:1px solid ' + borderColor + '">' +
+              '<div class="district-card-header" ' +
+                'style="background-color:' + headerColor + ';' +
+                'border-bottom:1px solid ' + borderColor + '">' +
+                '<div>' +
+                  '<div class="district-name">' + district.name + ' District</div>' +
+                  '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' +
+                    'Threat: ' + district.threat +
+                    ' | Risk Score: ' + district.score +
+                    ' | Villages: ' + district.villages.join(', ') +
+                  '</div>' +
+                '</div>' +
+                '<span class="priority-badge ' + priorityClass + '">' +
+                  district.priority + ' — ' +
+                  (district.priority === 'P1' ? 'IMMEDIATE' :
+                   district.priority === 'P2' ? 'STANDBY' : 'WATCH') +
+                '</span>' +
+            '</div>' +
+            '<div class="district-card-body">' +
+              checklistHTML +
+            '</div>' +
+          '</div>';
+
+          grid.innerHTML += card;
+
+        });
+
+      }
+
+
+      // =============================================
+      // CHECKLIST TOGGLE
+      // Click a task to mark it as done
+      // =============================================
+
+      function toggleCheck(districtIndex, actionIndex) {
+
+        var cb = document.getElementById(
+          'cb-' + districtIndex + '-' + actionIndex
+        );
+        var ct = document.getElementById(
+          'ct-' + districtIndex + '-' + actionIndex
+        );
+
+        // Toggle the done state
+        districts[districtIndex].actions[actionIndex].done =
+          !districts[districtIndex].actions[actionIndex].done;
+
+        if (districts[districtIndex].actions[actionIndex].done) {
+          cb.classList.add('checked');
+          ct.classList.add('done');
+        } else {
+          cb.classList.remove('checked');
+          ct.classList.remove('done');
+        }
+
+      }
+
+
+      // =============================================
+      // WHATSAPP ALERT GENERATOR
+      // =============================================
+
+      function openWhatsApp() {
+
+        var now = new Date();
+        var timeStr = now.toLocaleTimeString('en-IN', {
+          hour: '2-digit', minute: '2-digit'
+        });
+        var dateStr = now.toLocaleDateString('en-IN');
+
+        var englishMsg =
+          "⚠️ UMBRELLA DISASTER ALERT\n" +
+          "Issued: " + dateStr + " at " + timeStr + "\n\n" +
+          "HIGH RISK DISTRICTS: Chamoli, Uttarkashi, Rudraprayag\n\n" +
+          "🔴 IMMEDIATE ACTION REQUIRED:\n" +
+          "• Kedarnath yatra halted — Chorabari Lake GLOF risk\n" +
+          "• Evacuate Raini & Tapovan villages immediately\n" +
+          "• Evacuate Dharali village to Bhatwari relief camp\n\n" +
+          "⏱ Critical travel times:\n" +
+          "• Tapovan: 12 minutes from nearest lake\n" +
+          "• Raini: 15 minutes from nearest lake\n" +
+          "• Gangotri: 18 minutes from Dokriani Lake\n\n" +
+          "Relief camps open at Pipalkoti, Nandprayag, Guptkashi\n\n" +
+          "— District Disaster Management Authority, Uttarakhand\n" +
+          "UMBRELLA Early Warning System";
+
+        var hindiMsg =
+          "⚠️ आपदा चेतावनी — अम्ब्रेला प्रणाली\n" +
+          "जारी: " + dateStr + " समय " + timeStr + "\n\n" +
+          "🔴 उच्च जोखिम जिले: चमोली, उत्तरकाशी, रुद्रप्रयाग\n\n" +
+          "तत्काल कार्रवाई आवश्यक:\n" +
+          "• केदारनाथ यात्रा तुरंत रोकें\n" +
+          "• रैणी और तपोवन गांव खाली करें\n" +
+          "• धराली गांव को भटवाड़ी राहत शिविर भेजें\n\n" +
+          "राहत शिविर खुले हैं:\n" +
+          "पीपलकोटी, नंदप्रयाग, गुप्तकाशी\n\n" +
+          "— जिला आपदा प्रबंधन प्राधिकरण, उत्तराखंड";
+
+        document.getElementById('msg-english').innerText = englishMsg;
+        document.getElementById('msg-hindi').innerText   = hindiMsg;
+        document.getElementById('modal-overlay').classList.add('visible');
+
+      }
+
+      function closeModal() {
+        document.getElementById('modal-overlay')
+          .classList.remove('visible');
+      }
+
+      function copyMessage() {
+        var text =
+          document.getElementById('msg-english').innerText +
+          '\n\n' +
+          document.getElementById('msg-hindi').innerText;
+        navigator.clipboard.writeText(text);
+        alert('Message copied to clipboard!');
+      }
+
+      function sendWhatsApp() {
+        var text = document.getElementById('msg-english').innerText;
+        var encoded = encodeURIComponent(text);
+        window.open('https://wa.me/?text=' + encoded, '_blank');
+      }
+
+
+      // =============================================
+      // PDF SITUATION REPORT GENERATOR
+      // =============================================
+
+      function generatePDF() {
+
+        var { jsPDF } = window.jspdf;
+        var doc = new jsPDF();
+
+        var now = new Date();
+        var timestamp = now.toLocaleString('en-IN');
+
+        // Header
+        doc.setFillColor(10, 15, 30);
+        doc.rect(0, 0, 210, 40, 'F');
+
+        doc.setTextColor(56, 189, 248);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('UMBRELLA', 20, 18);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text('Multi-Hazard Early Warning & Response System', 20, 26);
+        doc.text('Uttarakhand Disaster Management Authority', 20, 32);
+
+        doc.setTextColor(239, 68, 68);
+        doc.setFontSize(9);
+        doc.text('Generated: ' + timestamp, 130, 26);
+        doc.text('Classification: OFFICIAL USE ONLY', 130, 32);
+
+        // Section title
+        var y = 50;
+
+        doc.setTextColor(239, 68, 68);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SITUATION REPORT — ACTIVE HAZARD ASSESSMENT', 20, y);
+        y += 10;
+
+        doc.setDrawColor(239, 68, 68);
+        doc.line(20, y, 190, y);
+        y += 10;
+
+        // Resource summary
+        doc.setTextColor(56, 189, 248);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RESOURCE STATUS', 20, y);
+        y += 8;
+
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+
+        var resources = [
+          'NDRF Teams Available: 6   |   Deployed: 4   |   Required: 8',
+          'Relief Camps Open: 8 of 24   |   Remaining Capacity: 12,400 persons',
+          'IAF Helicopters Available: 3   |   Deployed: 2',
+          'Hospitals Alerted: 5   |   Beds Available: 840   |   ICU: 48'
+        ];
+
+        resources.forEach(function(line) {
+          doc.text(line, 20, y);
+          y += 6;
+        });
+
+        y += 6;
+
+        // District reports
+        districts.forEach(function(district) {
+
+          if (y > 260) {
+            doc.addPage();
+            y = 20;
+          }
+
+          // District header
+          var headerColor = district.priority === 'P1'
+            ? [239, 68, 68]
+            : district.priority === 'P2'
+            ? [249, 115, 22]
+            : [34, 197, 94];
+
+          doc.setFillColor(
+            headerColor[0], headerColor[1], headerColor[2]
+          );
+          doc.rect(20, y, 170, 8, 'F');
+
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text(
+            district.priority + ' — ' +
+            district.name.toUpperCase() + ' DISTRICT' +
+            '   |   Threat: ' + district.threat +
+            '   |   Score: ' + district.score,
+            24, y + 5.5
+          );
+
+          y += 12;
+
+          // Actions
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+
+          district.actions.forEach(function(action) {
+            var status = action.done ? '[DONE] ' : '[PENDING] ';
+            doc.setTextColor(action.done ? 100 : 40, 40, 40);
+            var lines = doc.splitTextToSize(
+              status + action.text, 160
+            );
+            doc.text(lines, 25, y);
+            y += lines.length * 5 + 2;
+
+            doc.setTextColor(120, 120, 120);
+            doc.text('   ' + action.meta, 25, y);
+            y += 7;
+          });
+
+          y += 4;
+
+        });
+
+        // Footer
+        doc.setTextColor(148, 163, 184);
+        doc.setFontSize(8);
+        doc.text(
+          'UMBRELLA System — Confidential — ' + timestamp,
+          20, 290
+        );
+
+        // Save the PDF
+        doc.save('Umbrella_Situation_Report_' +
+          now.toISOString().slice(0,10) + '.pdf'
+        );
+
+      }
+
+
+      // Build cards on page load
+      buildDistrictCards();
+
+    </script>
+
+  </body>
+
+</html>

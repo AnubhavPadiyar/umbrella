@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbrella — Disaster Intelligence Dashboard</title>
+
+    <!-- Distinctive fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+
+      :root {
+        --bg:        #060d1a;
+        --bg2:       #0b1628;
+        --border:    rgba(56,189,248,0.12);
+        --border2:   rgba(56,189,248,0.25);
+        --blue:      #38bdf8;
+        --blue-dim:  rgba(56,189,248,0.08);
+        --red:       #f43f5e;
+        --orange:    #fb923c;
+        --green:     #34d399;
+        --text:      #f1f5f9;
+        --muted:     #64748b;
+        --muted2:    #94a3b8;
+        --mono:      'Space Mono', monospace;
+        --sans:      'DM Sans', sans-serif;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ── ANIMATED BACKGROUND ── */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 80% 50% at 20% 20%,
+            rgba(56,189,248,0.04) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at 80% 80%,
+            rgba(244,63,94,0.03) 0%, transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Animated grid */
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+        z-index: 0;
+        mask-image: radial-gradient(ellipse at center,
+          black 0%, transparent 75%);
+      }
+
+      /* ── NAVBAR ── */
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: rgba(6,13,26,0.85);
+        backdrop-filter: blur(12px);
+        padding: 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        height: 60px;
+      }
+
+      .logo {
+        font-family: var(--mono);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--blue);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+
+      .logo span {
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 8px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        color: var(--muted2);
+        text-decoration: none;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-family: var(--mono);
+        padding: 6px 12px;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--blue);
+        background-color: var(--blue-dim);
+      }
+
+      .nav-links a.active {
+        color: var(--blue);
+        background-color: var(--blue-dim);
+      }
+
+      /* ── HERO ── */
+      .hero {
+        position: relative;
+        z-index: 1;
+        padding: 80px 40px 60px;
+        text-align: center;
+      }
+
+      .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--blue);
+        margin-bottom: 24px;
+        padding: 6px 16px;
+        border: 1px solid var(--border2);
+        border-radius: 2px;
+        background-color: var(--blue-dim);
+      }
+
+      .pulse-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--green);
+        animation: pulse 2s infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+        50%       { opacity: 0.7; transform: scale(0.9); box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+      }
+
+      .hero-title {
+        font-family: var(--mono);
+        font-size: clamp(52px, 10vw, 96px);
+        font-weight: 700;
+        letter-spacing: 16px;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 4px;
+        position: relative;
+      }
+
+      /* Glitch effect on title */
+      .hero-title::after {
+        content: 'UMBRELLA';
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+        color: var(--blue);
+        clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+        animation: glitch 8s infinite;
+        opacity: 0.4;
+      }
+
+      @keyframes glitch {
+        0%, 90%, 100% { transform: translate(0); opacity: 0; }
+        92%           { transform: translate(-3px, 1px); opacity: 0.4; clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%); }
+        94%           { transform: translate(3px, -1px); opacity: 0.3; clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); }
+        96%           { transform: translate(0); opacity: 0; }
+      }
+
+      .hero-sub {
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        font-family: var(--mono);
+        margin-bottom: 32px;
+      }
+
+      /* Live clock strip */
+      .clock-strip {
+        display: inline-flex;
+        align-items: center;
+        gap: 24px;
+        padding: 10px 24px;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        background-color: var(--bg2);
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted2);
+        margin-bottom: 60px;
+      }
+
+      .clock-strip .divider {
+        width: 1px;
+        height: 14px;
+        background-color: var(--border2);
+      }
+
+      #live-time { color: var(--text); }
+      #live-date { color: var(--muted2); }
+
+      /* ── THREAT BANNER ── */
+      .threat-banner {
+        position: relative;
+        z-index: 1;
+        margin: 0 40px 48px;
+        padding: 20px 28px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid;
+        overflow: hidden;
+        transition: all 0.5s;
+      }
+
+      .threat-banner::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0;
+        width: 3px;
+        height: 100%;
+      }
+
+      .threat-banner.low {
+        background-color: rgba(52,211,153,0.05);
+        border-color: rgba(52,211,153,0.2);
+      }
+
+      .threat-banner.low::before { background: var(--green); }
+
+      .threat-banner.medium {
+        background-color: rgba(251,146,60,0.05);
+        border-color: rgba(251,146,60,0.2);
+      }
+
+      .threat-banner.medium::before { background: var(--orange); }
+
+      .threat-banner.high {
+        background-color: rgba(244,63,94,0.05);
+        border-color: rgba(244,63,94,0.2);
+      }
+
+      .threat-banner.high::before { background: var(--red); }
+
+      .threat-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .threat-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .threat-title {
+        font-family: var(--mono);
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .threat-desc {
+        font-size: 13px;
+        color: var(--muted2);
+        margin-top: 3px;
+        font-weight: 300;
+      }
+
+      .threat-right {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .threat-mm {
+        font-family: var(--mono);
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+
+      .threat-mm-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ── STAT CARDS ── */
+      .stats-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        margin: 0 40px 48px;
+        background-color: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .stat-card {
+        background-color: var(--bg2);
+        padding: 28px 24px;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.2s;
+      }
+
+      .stat-card:hover {
+        background-color: #0f1e35;
+      }
+
+      .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 0%; height: 2px;
+        transition: width 0.6s ease;
+      }
+
+      .stat-card.loaded::after { width: 100%; }
+
+      .stat-card.blue::after   { background: var(--blue); }
+      .stat-card.red::after    { background: var(--red); }
+      .stat-card.orange::after { background: var(--orange); }
+      .stat-card.green::after  { background: var(--green); }
+
+      .stat-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .stat-tag::before {
+        content: '';
+        width: 20px;
+        height: 1px;
+      }
+
+      .stat-card.blue   .stat-tag::before { background: var(--blue); }
+      .stat-card.red    .stat-tag::before { background: var(--red); }
+      .stat-card.orange .stat-tag::before { background: var(--orange); }
+      .stat-card.green  .stat-tag::before { background: var(--green); }
+
+      .stat-number {
+        font-family: var(--mono);
+        font-size: 48px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+
+      .stat-card.blue   .stat-number { color: var(--blue); }
+      .stat-card.red    .stat-number { color: var(--red); }
+      .stat-card.orange .stat-number { color: var(--orange); }
+      .stat-card.green  .stat-number { color: var(--green); }
+
+      .stat-label {
+        font-size: 13px;
+        color: var(--muted2);
+        font-weight: 300;
+      }
+
+      /* ── SECTION HEADER ── */
+      .section-header {
+        position: relative;
+        z-index: 1;
+        padding: 0 40px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .section-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+
+      .section-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(to right, var(--border2), transparent);
+      }
+
+      /* ── DISTRICT GRID ── */
+      .district-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 0 40px 48px;
+      }
+
+      .district-card {
+        background-color: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+        cursor: default;
+      }
+
+      .district-card:hover {
+        border-color: var(--border2);
+        background-color: #0f1e35;
+        transform: translateY(-1px);
+      }
+
+      .district-name {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+      }
+
+      .district-rivers {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 1px;
+      }
+
+      .district-right { text-align: right; }
+
+      .district-mm {
+        font-family: var(--mono);
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 4px;
+      }
+
+      .district-unit {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+
+      .risk-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 1px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .risk-pill.high   { background: rgba(244,63,94,0.15);  color: var(--red);    border: 1px solid rgba(244,63,94,0.3); }
+      .risk-pill.medium { background: rgba(251,146,60,0.15); color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
+      .risk-pill.low    { background: rgba(52,211,153,0.1);  color: var(--green);  border: 1px solid rgba(52,211,153,0.2); }
+
+      /* ── QUICK LINKS ── */
+      .quick-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 0 40px 60px;
+      }
+
+      .quick-link {
+        background-color: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 28px 24px;
+        text-decoration: none;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        transition: all 0.2s;
+        group: true;
+      }
+
+      .quick-link:hover {
+        border-color: var(--border2);
+        background-color: #0f1e35;
+        transform: translateY(-2px);
+      }
+
+      .quick-link-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        padding-top: 2px;
+        flex-shrink: 0;
+      }
+
+      .quick-link-title {
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+      }
+
+      .quick-link:hover .quick-link-title {
+        color: var(--blue);
+      }
+
+      .quick-link-desc {
+        font-size: 13px;
+        color: var(--muted2);
+        font-weight: 300;
+        line-height: 1.5;
+      }
+
+      .quick-link-arrow {
+        margin-left: auto;
+        font-size: 18px;
+        color: var(--muted);
+        padding-top: 2px;
+        flex-shrink: 0;
+        transition: transform 0.2s, color 0.2s;
+      }
+
+      .quick-link:hover .quick-link-arrow {
+        transform: translate(3px, -3px);
+        color: var(--blue);
+      }
+
+      /* ── FADE IN ANIMATIONS ── */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(16px);
+        animation: fadeIn 0.6s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .delay-1 { animation-delay: 0.1s; }
+      .delay-2 { animation-delay: 0.2s; }
+      .delay-3 { animation-delay: 0.3s; }
+      .delay-4 { animation-delay: 0.4s; }
+      .delay-5 { animation-delay: 0.5s; }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="logo">☂ <span>//</span> UMBRELLA</div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Dashboard</a></li>
+        <li><a href="map.html">Risk Map</a></li>
+        <li><a href="vulnerability.html">Vulnerability</a></li>
+        <li><a href="resources.html">Resources</a></li>
+        <li><a href="admin.html">Admin</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero fade-in">
+      <div class="hero-eyebrow">
+        <div class="pulse-dot"></div>
+        Multi-Hazard Early Warning System · Uttarakhand
+      </div>
+      <h1 class="hero-title">UMBRELLA</h1>
+      <p class="hero-sub">Disaster Intelligence Dashboard</p>
+      <div class="clock-strip">
+        <span style="color:var(--muted);font-size:10px;letter-spacing:2px;">
+          IST
+        </span>
+        <span id="live-time">--:--:--</span>
+        <div class="divider"></div>
+        <span id="live-date">Loading...</span>
+        <div class="divider"></div>
+        <span style="color:var(--green);font-size:10px;letter-spacing:1px;">
+          ● SYSTEM ACTIVE
+        </span>
+      </div>
+    </div>
+
+    <!-- Threat Banner -->
+    <div class="threat-banner low fade-in delay-1" id="threat-banner">
+      <div class="threat-left">
+        <div>
+          <div class="threat-label">Current Threat Level</div>
+          <div class="threat-title" id="threat-title">
+            Loading assessment...
+          </div>
+          <div class="threat-desc" id="threat-desc">
+            Fetching live rainfall from all districts
+          </div>
+        </div>
+      </div>
+      <div class="threat-right">
+        <div class="threat-mm" id="threat-mm">—</div>
+        <div class="threat-mm-label">Peak 48hr · mm</div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid fade-in delay-2">
+      <div class="stat-card blue" id="card-modules">
+        <div class="stat-tag">Hazard Modules</div>
+        <div class="stat-number" id="stat-modules">0</div>
+        <div class="stat-label">Active monitoring systems</div>
+      </div>
+      <div class="stat-card red" id="card-districts">
+        <div class="stat-tag">Districts</div>
+        <div class="stat-number" id="stat-districts">0</div>
+        <div class="stat-label">Under continuous watch</div>
+      </div>
+      <div class="stat-card orange" id="card-villages">
+        <div class="stat-tag">Villages</div>
+        <div class="stat-number" id="stat-villages">0</div>
+        <div class="stat-label">Vulnerability scored</div>
+      </div>
+      <div class="stat-card green" id="card-updated">
+        <div class="stat-tag">Last Updated</div>
+        <div class="stat-number" id="stat-status"
+          style="font-size:28px;padding-top:10px;">—</div>
+        <div class="stat-label">Rainfall data refreshed</div>
+      </div>
+    </div>
+
+    <!-- District Status -->
+    <div class="section-header fade-in delay-3">
+      <span class="section-tag">📡 Live District Rainfall</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="district-grid fade-in delay-3" id="district-grid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Quick Links -->
+    <div class="section-header fade-in delay-4">
+      <span class="section-tag">Quick Access</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="quick-grid fade-in delay-4">
+      <a href="map.html" class="quick-link">
+        <span class="quick-link-num">01</span>
+        <div>
+          <div class="quick-link-title">Risk Map</div>
+          <div class="quick-link-desc">
+            GLOF lake markers, live flood zones and
+            real-time rainfall overlay across Uttarakhand
+          </div>
+        </div>
+        <span class="quick-link-arrow">↗</span>
+      </a>
+      <a href="vulnerability.html" class="quick-link">
+        <span class="quick-link-num">02</span>
+        <div>
+          <div class="quick-link-title">Vulnerability Scorer</div>
+          <div class="quick-link-desc">
+            Live risk scores for all tracked villages —
+            population, travel time, rainfall and road access
+          </div>
+        </div>
+        <span class="quick-link-arrow">↗</span>
+      </a>
+      <a href="resources.html" class="quick-link">
+        <span class="quick-link-num">03</span>
+        <div>
+          <div class="quick-link-title">Resource Recommender</div>
+          <div class="quick-link-desc">
+            NDRF deployment, relief camps, WhatsApp alerts
+            and downloadable situation reports
+          </div>
+        </div>
+        <span class="quick-link-arrow">↗</span>
+      </a>
+    </div>
+
+
+    <script>
+
+      // =============================================
+      // LIVE CLOCK
+      // =============================================
+
+      function updateClock() {
+        var now = new Date();
+        document.getElementById('live-time').innerText =
+          now.toLocaleTimeString('en-IN', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+          });
+        document.getElementById('live-date').innerText =
+          now.toLocaleDateString('en-IN', {
+            weekday: 'short', day: 'numeric',
+            month:   'short', year: 'numeric'
+          });
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+
+
+      // =============================================
+      // ANIMATED COUNTER
+      // =============================================
+
+      function animateCount(id, target, duration, isTime) {
+        if (isTime) {
+          document.getElementById(id).innerText = target;
+          return;
+        }
+        var el    = document.getElementById(id);
+        var start = 0;
+        var step  = target / (duration / 16);
+        var timer = setInterval(function() {
+          start += step;
+          if (start >= target) {
+            start = target;
+            clearInterval(timer);
+            // Trigger bottom bar animation
+            var card = el.closest('.stat-card');
+            if (card) card.classList.add('loaded');
+          }
+          el.innerText = Math.floor(start);
+        }, 16);
+      }
+
+
+      // =============================================
+      // RIVERS LOOKUP
+      // =============================================
+
+      var RIVERS = {
+        "Uttarkashi":    "Bhagirathi · Yamuna",
+        "Chamoli":       "Alaknanda · Pindar",
+        "Rudraprayag":   "Mandakini · Alaknanda",
+        "Tehri Garhwal": "Bhagirathi · Bhilangna",
+        "Pithoragarh":   "Kali · Gori",
+        "Haridwar":      "Ganga"
+      };
+
+
+      // =============================================
+      // FETCH FROM FLASK BACKEND
+      // =============================================
+
+      fetch("https://web-production-517aa.up.railway.app")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+
+          var results  = data.districts;
+          var peakMm   = 0;
+          var peakName = '';
+
+          results.forEach(function(r) {
+            if (r.mm_48hr > peakMm) {
+              peakMm   = r.mm_48hr;
+              peakName = r.district;
+            }
+          });
+
+          var peakRisk  = peakMm >= 115 ? "HIGH"
+                        : peakMm >= 65  ? "MEDIUM" : "LOW";
+          var peakColor = peakRisk === "HIGH"   ? "var(--red)"
+                        : peakRisk === "MEDIUM" ? "var(--orange)"
+                        : "var(--green)";
+
+          // Update threat banner
+          var banner = document.getElementById('threat-banner');
+          banner.className =
+            'threat-banner fade-in delay-1 ' + peakRisk.toLowerCase();
+
+          document.getElementById('threat-mm').innerText  = peakMm + 'mm';
+          document.getElementById('threat-mm').style.color = peakColor;
+
+          if (peakRisk === 'HIGH') {
+            document.getElementById('threat-title').innerText =
+              '⬛ HIGH THREAT — Immediate Action Required';
+            document.getElementById('threat-title').style.color =
+              'var(--red)';
+            document.getElementById('threat-desc').innerText =
+              'Extreme rainfall in ' + peakName +
+              '. NDRF deployment recommended immediately.';
+          } else if (peakRisk === 'MEDIUM') {
+            document.getElementById('threat-title').innerText =
+              '▲ ELEVATED THREAT — Standby Alert';
+            document.getElementById('threat-title').style.color =
+              'var(--orange)';
+            document.getElementById('threat-desc').innerText =
+              'Heavy rainfall in ' + peakName +
+              '. SDRF teams on standby.';
+          } else {
+            document.getElementById('threat-title').innerText =
+              '● NORMAL CONDITIONS — Monitoring Active';
+            document.getElementById('threat-title').style.color =
+              'var(--green)';
+            document.getElementById('threat-desc').innerText =
+              'All ' + results.length +
+              ' districts within safe rainfall thresholds.';
+          }
+
+          // Animate counters
+          animateCount('stat-modules',   4,  900);
+          animateCount('stat-districts', 6,  900);
+          animateCount('stat-villages',  15, 900);
+
+          var now = new Date();
+          animateCount('stat-status',
+            now.toLocaleTimeString('en-IN', {
+              hour: '2-digit', minute: '2-digit', hour12: false
+            }), 0, true);
+
+          // Build district cards
+          var grid = document.getElementById('district-grid');
+          grid.innerHTML = '';
+
+          results.forEach(function(r) {
+            var risk      = r.risk;
+            var color     = risk === "HIGH"   ? "var(--red)"
+                          : risk === "MEDIUM" ? "var(--orange)"
+                          : "var(--green)";
+            var pillClass = risk === "HIGH"   ? "high"
+                          : risk === "MEDIUM" ? "medium" : "low";
+
+            grid.innerHTML +=
+              '<div class="district-card">' +
+                '<div>' +
+                  '<div class="district-name">' +
+                    r.district +
+                  '</div>' +
+                  '<div class="district-rivers">' +
+                    (RIVERS[r.district] || '') +
+                  '</div>' +
+                '</div>' +
+                '<div class="district-right">' +
+                  '<div class="district-mm" style="color:' + color + '">' +
+                    r.mm_48hr +
+                  '</div>' +
+                  '<div class="district-unit">mm / 48hr</div>' +
+                  '<span class="risk-pill ' + pillClass + '">' +
+                    risk +
+                  '</span>' +
+                '</div>' +
+              '</div>';
+          });
+
+        })
+        .catch(function() {
+          document.getElementById('threat-title').innerText =
+            'SERVER OFFLINE';
+          document.getElementById('threat-title').style.color =
+            'var(--red)';
+          document.getElementById('threat-desc').innerText =
+            'Run: python3 server.py in Terminal';
+        });
+
+    </script>
+
+  </body>
+
+</html>

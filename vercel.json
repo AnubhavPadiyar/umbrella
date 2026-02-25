@@ -1,12 +1,5 @@
 {
   "version": 2,
-  "outputDirectory": ".",
-  "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/index.html", "dest": "/index.html" },
-    { "src": "/map.html", "dest": "/map.html" },
-    { "src": "/vulnerability.html", "dest": "/vulnerability.html" },
-    { "src": "/resources.html", "dest": "/resources.html" },
-    { "src": "/admin.html", "dest": "/admin.html" }
-  ]
+  "public": true,
+  "outputDirectory": "public"
 }
