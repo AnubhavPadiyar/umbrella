@@ -19,6 +19,22 @@
 
 ---
 
+## Dashboard Preview
+
+### Main Dashboard
+<img src="assets/dashboard-overview.png" width="900">
+
+### Risk Map
+<img src="assets/risk-map.png" width="900">
+
+### Vulnerability Scorer
+<img src="assets/vulnerability-table.png" width="900">
+
+### Resource Recommender
+<img src="assets/resource-panel.png" width="900">
+
+---
+
 ## The Problem
 
 In June 2013, over 6,000 people died in the Kedarnath disaster. In February 2021, a glacial lake outburst in Chamoli's Tapovan killed 200 more. Both events shared a critical failure — **ground-level intelligence arrived too late.**
