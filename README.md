@@ -163,23 +163,10 @@ Existing tools give weather data. Umbrella gives **ground intelligence** — con
 
 ## Built By
 
-**Anubhav Padiyar** — Civil Engineering, Uttarakhand  
+**Anubhav Padiyar** — sophomore, Uttarakhand  
 GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)
-
-Domain expertise: Himalayan terrain, drainage systems, construction vulnerability  
-Personal connection: Lived through the consequences of inadequate early warning
 
 *"The gap between a weather alert and a saved life is ground intelligence. That's what Umbrella provides."*
 
 ---
 
-## SDG Alignment
-
-- **SDG 13** — Climate Action (glacial melt early warning)
-- **SDG 11** — Sustainable Cities (resilient Himalayan settlements)
-- **SDG 3** — Good Health (lives saved through early warning)
-- **SDG 17** — Partnerships (open government data integration)
-
----
-
-*Umbrella is open source. Built for the people of Uttarakhand.*
