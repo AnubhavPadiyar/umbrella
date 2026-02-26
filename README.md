@@ -163,10 +163,8 @@ Existing tools give weather data. Umbrella gives **ground intelligence** — con
 
 ## Built By
 
-**Anubhav Padiyar** — sophomore, Uttarakhand  
+**Anubhav Padiyar** — Sophomore,Computer Science and Engineering
 GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)
-
-*"The gap between a weather alert and a saved life is ground intelligence. That's what Umbrella provides."*
 
 ---
 
