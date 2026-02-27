@@ -156,6 +156,40 @@ Each village is scored 0–100 across five weighted factors:
 
 **Risk Classification:** ≥70 = HIGH · 45–69 = MEDIUM · <45 = LOW
 
+## Formula Validation — Kedarnath 2013
+
+To test whether Umbrella's scoring formula is scientifically grounded, it was backtested against the June 2013 Kedarnath disaster — the most severe Himalayan disaster in recent history.
+
+**Event:** Kedarnath Flash Flood & GLOF — June 16–17, 2013  
+**Rainfall:** ~340mm in 24 hours — Rudraprayag district  
+**Deaths:** 6,000+  
+**Cause:** Chorabari glacial lake outburst + extreme monsoon rainfall
+
+### Backtest Inputs
+
+| Factor | 2013 Conditions | Score |
+|--------|----------------|-------|
+| Population | 1,200 permanent residents | 15pts |
+| GLOF Travel Time | 23 minutes from Chorabari Lake | 15pts |
+| Rainfall Risk | 340mm — HIGH (≥115mm threshold) | 20pts |
+| Road Safety | All roads blocked | 20pts |
+| Historical Event | Yes — prior flood history | 15pts |
+| **Total Score** | | **85 / 100** |
+
+**Umbrella Classification: HIGH RISK ✅**
+
+### Result
+
+Umbrella's formula correctly classifies Kedarnath as HIGH RISK under June 2013 conditions. The 85/100 score would have triggered P1 NDRF deployment recommendations and placed Kedarnath at the top of the evacuation priority list.
+
+### Known Limitation
+
+The formula uses permanent population (1,200) rather than peak season population. During Char Dham pilgrimage season (May–June), Kedarnath hosts 40,000–50,000 pilgrims — making the actual population at risk 40x higher than the permanent figure. A seasonal population multiplier is planned for a future version.
+
+### Conclusion
+
+The weighted formula performs correctly against historical data. The primary gap identified is seasonal population data for pilgrimage towns — a known limitation documented in the roadmap.
+
 ---
 
 ## Roadmap
