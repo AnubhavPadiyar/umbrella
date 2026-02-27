@@ -48,6 +48,11 @@ Umbrella fills that gap.
 ## What Umbrella Does
 
 A four-screen disaster intelligence platform built for district-level emergency response in the Indian Himalayan Region.
+### Live Incident Log *(In Development)*
+- Real-time timestamped notes during active disasters
+- Override automated recommendations with ground truth
+- Running decision log for accountability and post-disaster review
+- Exportable as official incident report
 
 ### Live Hazard Risk Map
 - 8 real glacial lake markers with GLOF travel times to nearest villages
@@ -162,6 +167,7 @@ Each village is scored 0–100 across five weighted factors:
 - [ ] SMS alert gateway
 - [ ] Mobile responsive design
 - [ ] Himachal Pradesh and Sikkim expansion
+- [ ] Live Incident Log — real-time decision logging with timestamps during active disasters, override recommendations, exportable as incident report
 
 ---
 
