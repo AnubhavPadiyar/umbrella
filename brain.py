@@ -7,9 +7,9 @@ import ssl
 import certifi
 
 
-# =============================================
+
 # RAINFALL RISK CALCULATOR
-# =============================================
+
 
 def get_rainfall_risk(mm_48hr):
     if mm_48hr >= 115:
@@ -19,9 +19,9 @@ def get_rainfall_risk(mm_48hr):
     return "LOW"
 
 
-# =============================================
+
 # FETCH LIVE RAINFALL FROM OPEN-METEO API
-# =============================================
+
 
 def fetch_rainfall(lat, lng):
     url = (
@@ -48,9 +48,9 @@ def fetch_rainfall(lat, lng):
         return 0.0
 
 
-# =============================================
+
 # VILLAGE VULNERABILITY SCORER
-# =============================================
+
 
 def score_village(village):
 
@@ -89,9 +89,9 @@ def score_village(village):
     return score
 
 
-# =============================================
+
 # RISK LEVEL FROM SCORE
-# =============================================
+
 
 def get_risk_level(score):
     if score >= 70: return "HIGH"
@@ -99,9 +99,9 @@ def get_risk_level(score):
     return "LOW"
 
 
-# =============================================
+
 # DISTRICT COORDINATES
-# =============================================
+
 
 DISTRICTS = [
     {"name": "Uttarkashi",    "lat": 30.7268, "lng": 78.4354},
@@ -113,9 +113,9 @@ DISTRICTS = [
 ]
 
 
-# =============================================
+
 # READ VILLAGES FROM DATABASE
-# =============================================
+
 
 def get_villages_from_db():
     """
@@ -155,9 +155,9 @@ def get_villages_from_db():
     return villages
 
 
-# =============================================
+
 # MAIN
-# =============================================
+
 
 if __name__ == "__main__":
 

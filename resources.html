@@ -610,9 +610,9 @@
     var liveData = null;
 
 
-    // =============================================
+
     // FETCH ALL LIVE DATA
-    // =============================================
+
 
     Promise.all([
       fetch(BACKEND + "/villages").then(function(r) { return r.json(); }),
@@ -693,9 +693,9 @@
     });
 
 
-    // =============================================
+
     // DEPLOYMENT RECOMMENDATIONS
-    // =============================================
+
 
     function buildDeployment(d) {
       var html = '';
@@ -752,9 +752,9 @@
     }
 
 
-    // =============================================
+
     // EVACUATION PRIORITY LIST
-    // =============================================
+
 
     function buildEvacuation(d) {
       var sorted = d.villages.slice().sort(function(a, b) {
@@ -792,9 +792,9 @@
     }
 
 
-    // =============================================
+
     // ALERT GENERATOR
-    // =============================================
+
 
     function generateAlert(lang) {
       currentLang = lang;
@@ -887,9 +887,9 @@
     }
 
 
-    // =============================================
+
     // SITUATION REPORT
-    // =============================================
+
 
     function buildReport(d) {
       var now  = new Date();

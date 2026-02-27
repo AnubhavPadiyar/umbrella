@@ -17,10 +17,10 @@ app = Flask(__name__)
 CORS(app)
 
 
-# =============================================
+
 # ROUTE 1 — Health Check
 # Visit: http://localhost:5000/
-# =============================================
+
 
 @app.route("/")
 def home():
@@ -31,10 +31,10 @@ def home():
     })
 
 
-# =============================================
+
 # ROUTE 2 — Live Rainfall
 # Visit: http://localhost:5000/rainfall
-# =============================================
+
 
 @app.route("/rainfall")
 def rainfall():
@@ -57,10 +57,10 @@ def rainfall():
     })
 
 
-# =============================================
+
 # ROUTE 3 — Village Scores
 # Visit: http://localhost:5000/villages
-# =============================================
+
 
 @app.route("/villages")
 def village_scores():
@@ -109,10 +109,10 @@ def village_scores():
         "villages": results
     })
     
-    # =============================================
+    
 # ROUTE 4 — Add a new village
 # Called when admin submits the form
-# =============================================
+
 
 @app.route("/admin/add-village", methods=["POST"])
 def add_village():
@@ -152,9 +152,9 @@ def add_village():
     })
 
 
-# =============================================
+
 # ROUTE 5 — Delete a village
-# =============================================
+
 
 @app.route("/admin/delete-village/<int:village_id>", methods=["DELETE"])
 def delete_village(village_id):
@@ -176,10 +176,10 @@ def delete_village(village_id):
     })
 
 
-# =============================================
+
 # ROUTE 6 — Get all villages (raw, no scoring)
 # For the admin panel table
-# =============================================
+
 
 @app.route("/admin/villages")
 def admin_villages():
@@ -221,9 +221,9 @@ def admin_villages():
     })
 
 
-# =============================================
+
 # START THE SERVER
-# =============================================
+
 
 if __name__ == "__main__":
     print("=" * 45)

@@ -732,9 +732,9 @@
 
     <script>
 
-      // =============================================
+    
       // LIVE CLOCK
-      // =============================================
+    
 
       function updateClock() {
         var now = new Date();
@@ -754,9 +754,9 @@
       setInterval(updateClock, 1000);
 
 
-      // =============================================
+    
       // ANIMATED COUNTER
-      // =============================================
+    
 
       function animateCount(id, target, duration, isTime) {
         if (isTime) {
@@ -780,9 +780,9 @@
       }
 
 
-      // =============================================
+    
       // RIVERS LOOKUP
-      // =============================================
+    
 
       var RIVERS = {
         "Uttarkashi":    "Bhagirathi · Yamuna",
@@ -794,9 +794,9 @@
       };
 
 
-      // =============================================
+    
       // FETCH FROM FLASK BACKEND
-      // =============================================
+    
 
       fetch("https://web-production-517aa.up.railway.app/rainfall")
         .then(function(r) { return r.json(); })

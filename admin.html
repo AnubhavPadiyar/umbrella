@@ -398,9 +398,9 @@
 
     <script>
 
-      // =============================================
+    
       // LOAD VILLAGES ON PAGE LOAD
-      // =============================================
+    
 
       function loadVillages() {
         fetch("https://web-production-517aa.up.railway.app/admin/villages")
@@ -420,9 +420,9 @@
       loadVillages();
 
 
-      // =============================================
+    
       // BUILD TABLE
-      // =============================================
+    
 
       function buildTable(villages) {
         var tbody = document.getElementById('table-body');
@@ -470,9 +470,9 @@
       }
 
 
-      // =============================================
+    
       // ADD VILLAGE
-      // =============================================
+    
 
       function addVillage() {
 
@@ -530,9 +530,9 @@
       }
 
 
-      // =============================================
+    
       // DELETE VILLAGE
-      // =============================================
+    
 
       function deleteVillage(id, name) {
         if (!confirm('Delete ' + name + ' from the database?')) return;

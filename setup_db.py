@@ -11,9 +11,9 @@ conn = sqlite3.connect("umbrella.db")
 # A cursor is what you use to send commands to the database
 cursor = conn.cursor()
 
-# =============================================
+
 # CREATE THE VILLAGES TABLE
-# =============================================
+
 
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS villages (
@@ -30,9 +30,9 @@ cursor.execute("""
 
 print("✓ Villages table created")
 
-# =============================================
+
 # INSERT VILLAGE DATA
-# =============================================
+
 
 # Clear existing data first so we don't duplicate
 cursor.execute("DELETE FROM villages")
@@ -64,9 +64,9 @@ cursor.executemany("""
 
 print(f"✓ {len(villages)} villages inserted")
 
-# =============================================
+
 # VERIFY — show what's in the database
-# =============================================
+
 
 cursor.execute("SELECT id, name, district, population FROM villages")
 rows = cursor.fetchall()
