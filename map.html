@@ -1,485 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Risk Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;flex-shrink:0;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+    .map-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .toolbar-left{display:flex;align-items:center;gap:16px;}
+    .toolbar-title{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--navy);}
+    .toolbar-sub{font-size:12px;color:var(--muted2);margin-top:1px;}
+    .divider{width:1px;height:32px;background:var(--border);}
+    .layer-btns{display:flex;gap:6px;}
+    .layer-btn{padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--sans);}
+    .layer-btn:hover{border-color:var(--navy);color:var(--navy);}
+    .layer-btn.active{background:var(--navy);border-color:var(--navy);color:white;}
+    .data-status{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:2px;border:1px solid var(--border2);color:var(--muted2);}
+    .data-status.live{border-color:rgba(30,126,74,0.4);color:var(--green);background:var(--green-dim);}
+    .data-status.loading{border-color:rgba(211,84,0,0.3);color:var(--orange);background:var(--orange-dim);}
+    #map{flex:1;}
+    .leaflet-popup-content-wrapper{border-radius:4px;border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,0.12);font-family:var(--sans);}
+    .leaflet-popup-content{margin:14px 16px;font-size:13px;line-height:1.6;color:var(--text);}
+    .popup-title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--navy);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .popup-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;}
+    .popup-label{color:var(--muted2);}
+    .popup-val{font-weight:600;font-family:var(--mono);font-size:12px;}
+    .popup-risk{display:inline-block;padding:2px 8px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:1px;font-family:var(--mono);}
+    .popup-risk.high{background:var(--red-dim);color:var(--red);}
+    .popup-risk.medium{background:var(--orange-dim);color:var(--orange);}
+    .popup-risk.low{background:var(--green-dim);color:var(--green);}
+    .popup-note{font-size:10px;color:var(--muted2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--mono);}
+    .map-legend{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;font-size:12px;min-width:160px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+    .legend-section-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+    .legend-item{display:flex;align-items:center;gap:8px;color:var(--text);font-size:12px;margin-bottom:5px;}
+    .l-dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 1px rgba(0,0,0,0.15);}
+    .l-swatch{width:18px;height:10px;display:inline-block;border-radius:2px;flex-shrink:0;opacity:0.7;}
+    .legend-divider{height:1px;background:var(--border);margin:10px 0;}
+  </style>
+</head>
+<body>
 
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umbrella — Risk Map</title>
-
-    <link rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <style>
-
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-
-      body {
-        background-color: #0a0f1e;
-        color: #ffffff;
-        font-family: Arial, sans-serif;
-      }
-
-      .navbar {
-        background-color: #111827;
-        padding: 16px 32px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid #1e3a5f;
-      }
-
-      .logo {
-        font-size: 24px;
-        font-weight: bold;
-        color: #38bdf8;
-        letter-spacing: 2px;
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 32px;
-        list-style: none;
-      }
-
-      .nav-links a {
-        color: #94a3b8;
-        text-decoration: none;
-        font-size: 14px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-
-      .nav-links a:hover { color: #38bdf8; }
-
-      .page-header {
-        padding: 16px 32px;
-        border-bottom: 1px solid #1e3a5f;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .page-header h2 {
-        font-size: 20px;
-        color: #38bdf8;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-      }
-
-      .page-header p {
-        color: #94a3b8;
-        font-size: 13px;
-        margin-top: 4px;
-      }
-
-      .layer-controls {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .layer-btn {
-        padding: 8px 16px;
-        border-radius: 6px;
-        border: 1px solid #1e3a5f;
-        background-color: #1e293b;
-        color: #94a3b8;
-        font-size: 13px;
-        cursor: pointer;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-
-      .layer-btn.active {
-        background-color: #38bdf8;
-        color: #0a0f1e;
-        font-weight: bold;
-        border-color: #38bdf8;
-      }
-
-      .layer-btn:hover {
-        border-color: #38bdf8;
-        color: #38bdf8;
-      }
-
-      .data-status {
-        font-size: 12px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        border: 1px solid #1e3a5f;
-        color: #94a3b8;
-        background-color: #1e293b;
-      }
-
-      .data-status.live {
-        color: #22c55e;
-        border-color: #22c55e;
-        background-color: rgba(34,197,94,0.1);
-      }
-
-      .data-status.loading {
-        color: #f97316;
-        border-color: #f97316;
-        background-color: rgba(249,115,22,0.1);
-      }
-
-      #map {
-        height: calc(100vh - 150px);
-        width: 100%;
-      }
-
-      .legend {
-        background-color: #111827;
-        border: 1px solid #1e3a5f;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        line-height: 2;
-        min-width: 180px;
-      }
-
-      .legend-title {
-        font-weight: bold;
-        color: #38bdf8;
-        margin-bottom: 8px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        font-size: 11px;
-      }
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #e2e8f0;
-        font-size: 12px;
-      }
-
-      .dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
-        flex-shrink: 0;
-      }
-
-      .swatch {
-        width: 20px;
-        height: 12px;
-        display: inline-block;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
-
-    </style>
-
-  </head>
-
-  <body>
-
-    <nav class="navbar">
-      <div class="logo">☂ UMBRELLA</div>
-      <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="map.html">Risk Map</a></li>
-        <li><a href="vulnerability.html">Vulnerability Scorer</a></li>
-        <li><a href="resources.html">Resource Recommender</a></li>
-      </ul>
-    </nav>
-
-    <div class="page-header">
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
       <div>
-        <h2>⚠ Live Hazard Risk Map</h2>
-        <p>Uttarakhand — Glacial Lakes, Flood Zones & Live Rainfall</p>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
       </div>
-      <div class="layer-controls">
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html" class="active">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="admin.html">Admin</a></li>
+    </ul>
+  </nav>
 
-        <span class="data-status loading" id="data-status">
-          ⏳ Fetching live rainfall...
-        </span>
-
-        <button class="layer-btn active" id="btn-glof"
-          onclick="showLayer('glof')">
-          ❄ GLOF Risk
-        </button>
-        <button class="layer-btn" id="btn-flood"
-          onclick="showLayer('flood')">
-          🌧 Flood Risk
-        </button>
-        <button class="layer-btn" id="btn-both"
-          onclick="showLayer('both')">
-          ⚡ Both
-        </button>
-
+  <div class="map-toolbar">
+    <div class="toolbar-left">
+      <div>
+        <div class="toolbar-title">Live Hazard Risk Map</div>
+        <div class="toolbar-sub">Uttarakhand — Glacial Lakes, Flood Zones &amp; Live Rainfall</div>
+      </div>
+      <div class="divider"></div>
+      <div class="layer-btns">
+        <button class="layer-btn active" id="btn-glof"  onclick="showLayer('glof')">❄ GLOF Risk</button>
+        <button class="layer-btn"        id="btn-flood" onclick="showLayer('flood')">🌧 Flood Risk</button>
+        <button class="layer-btn"        id="btn-both"  onclick="showLayer('both')">⚡ Both Layers</button>
       </div>
     </div>
+    <span class="data-status loading" id="data-status">⏳ Fetching live rainfall...</span>
+  </div>
 
-    <div id="map"></div>
+  <div id="map"></div>
 
+  <script>
+    var DISTRICTS=[
+      {name:"Uttarkashi",lat:30.7268,lng:78.4354,rivers:"Bhagirathi, Yamuna",coords:[[31.20,78.40],[31.20,79.20],[30.80,79.20],[30.80,78.40]]},
+      {name:"Chamoli",lat:30.4021,lng:79.3215,rivers:"Alaknanda, Pindar",coords:[[30.80,79.20],[30.80,80.20],[30.20,80.20],[30.20,79.20]]},
+      {name:"Rudraprayag",lat:30.2847,lng:78.9816,rivers:"Mandakini, Alaknanda",coords:[[30.80,78.80],[30.80,79.20],[30.40,79.20],[30.40,78.80]]},
+      {name:"Tehri Garhwal",lat:30.3780,lng:78.4322,rivers:"Bhagirathi, Bhilangna",coords:[[30.60,78.20],[30.60,78.80],[30.20,78.80],[30.20,78.20]]},
+      {name:"Pithoragarh",lat:29.5829,lng:80.2181,rivers:"Kali, Gori",coords:[[30.60,80.20],[30.60,80.80],[29.80,80.80],[29.80,80.20]]},
+      {name:"Haridwar",lat:29.9457,lng:78.1642,rivers:"Ganga",coords:[[30.00,77.80],[30.00,78.20],[29.60,78.20],[29.60,77.80]]}
+    ];
+  </script>
 
-    <!-- =============================================
-         DISTRICTS DATA — embedded directly
-         No separate file needed
-         ============================================= -->
-    <script>
-      var DISTRICTS = [
-        {
-          name:   "Uttarkashi",
-          lat:    30.7268,
-          lng:    78.4354,
-          rivers: "Bhagirathi, Yamuna",
-          coords: [
-            [31.20, 78.40], [31.20, 79.20],
-            [30.80, 79.20], [30.80, 78.40]
-          ]
-        },
-        {
-          name:   "Chamoli",
-          lat:    30.4021,
-          lng:    79.3215,
-          rivers: "Alaknanda, Pindar",
-          coords: [
-            [30.80, 79.20], [30.80, 80.20],
-            [30.20, 80.20], [30.20, 79.20]
-          ]
-        },
-        {
-          name:   "Rudraprayag",
-          lat:    30.2847,
-          lng:    78.9816,
-          rivers: "Mandakini, Alaknanda",
-          coords: [
-            [30.80, 78.80], [30.80, 79.20],
-            [30.40, 79.20], [30.40, 78.80]
-          ]
-        },
-        {
-          name:   "Tehri Garhwal",
-          lat:    30.3780,
-          lng:    78.4322,
-          rivers: "Bhagirathi, Bhilangna",
-          coords: [
-            [30.60, 78.20], [30.60, 78.80],
-            [30.20, 78.80], [30.20, 78.20]
-          ]
-        },
-        {
-          name:   "Pithoragarh",
-          lat:    29.5829,
-          lng:    80.2181,
-          rivers: "Kali, Gori",
-          coords: [
-            [30.60, 80.20], [30.60, 80.80],
-            [29.80, 80.80], [29.80, 80.20]
-          ]
-        },
-        {
-          name:   "Haridwar",
-          lat:    29.9457,
-          lng:    78.1642,
-          rivers: "Ganga",
-          coords: [
-            [30.00, 77.80], [30.00, 78.20],
-            [29.60, 78.20], [29.60, 77.80]
-          ]
-        }
-      ];
-    </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('map').setView([30.0668,79.0193],8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
 
-    <script>
+    function riskColor(r){return r==='HIGH'?'#c0392b':r==='MEDIUM'?'#d35400':'#1e7e4a';}
+    function riskClass(r){return r==='HIGH'?'high':r==='MEDIUM'?'medium':'low';}
 
-      
-      // 1. INITIALISE MAP
-      
+    var glacialLakes=[
+      [30.7746,79.0669,"Chorabari Lake","HIGH","Rudraprayag","23 mins"],
+      [30.4167,79.9333,"Satopanth Lake","HIGH","Chamoli","41 mins"],
+      [30.9167,79.6500,"Vasuki Tal","MEDIUM","Chamoli","67 mins"],
+      [31.0167,78.9833,"Dokriani Lake","HIGH","Uttarkashi","18 mins"],
+      [30.5500,80.2667,"Milam Glacier Lake","MEDIUM","Pithoragarh","55 mins"],
+      [30.8833,79.7167,"Nandanvan Lake","MEDIUM","Chamoli","72 mins"],
+      [31.1000,78.7500,"Kedartal Lake","HIGH","Uttarkashi","31 mins"],
+      [30.3500,79.6833,"Hemkund Lake","LOW","Chamoli","90 mins"]
+    ];
 
-      var map = L.map('map').setView([30.0668, 79.0193], 8);
+    var glofLayer=L.layerGroup();
+    glacialLakes.forEach(function(lake){
+      var col=riskColor(lake[3]),rc=riskClass(lake[3]);
+      var m=L.circleMarker([lake[0],lake[1]],{radius:9,fillColor:col,color:'#ffffff',weight:2,fillOpacity:0.9});
+      m.bindPopup(
+        '<div class="popup-title">❄ '+lake[2]+'</div>'+
+        '<div class="popup-row"><span class="popup-label">District</span><span class="popup-val">'+lake[4]+'</span></div>'+
+        '<div class="popup-row"><span class="popup-label">GLOF Risk</span><span class="popup-risk '+rc+'">'+lake[3]+'</span></div>'+
+        '<div class="popup-row"><span class="popup-label">Travel time</span><span class="popup-val">'+lake[5]+'</span></div>'+
+        '<div class="popup-note">Glacial Lake Outburst Flood · ISRO NRSC coordinates</div>'
+      );
+      m.addTo(glofLayer);
+    });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
+    var floodLayer=L.layerGroup();
 
+    var fetches=DISTRICTS.map(function(d){
+      return fetch("https://api.open-meteo.com/v1/forecast?latitude="+d.lat+"&longitude="+d.lng+"&daily=precipitation_sum&past_days=2&forecast_days=1&timezone=Asia%2FKolkata")
+        .then(function(r){return r.json();})
+        .then(function(data){
+          var p=data.daily.precipitation_sum;
+          return {district:d,mm:Math.round((p[1]+p[2])*10)/10};
+        })
+        .catch(function(){return {district:d,mm:0};});
+    });
 
-      
-      // 2. GLACIAL LAKE MARKERS
-      
-
-      var glacialLakes = [
-        [30.7746, 79.0669, "Chorabari Lake",     "HIGH",   "Rudraprayag", "23 mins"],
-        [30.4167, 79.9333, "Satopanth Lake",     "HIGH",   "Chamoli",     "41 mins"],
-        [30.9167, 79.6500, "Vasuki Tal",         "MEDIUM", "Chamoli",     "67 mins"],
-        [31.0167, 78.9833, "Dokriani Lake",      "HIGH",   "Uttarkashi",  "18 mins"],
-        [30.5500, 80.2667, "Milam Glacier Lake", "MEDIUM", "Pithoragarh", "55 mins"],
-        [30.8833, 79.7167, "Nandanvan Lake",     "MEDIUM", "Chamoli",     "72 mins"],
-        [31.1000, 78.7500, "Kedartal Lake",      "HIGH",   "Uttarkashi",  "31 mins"],
-        [30.3500, 79.6833, "Hemkund Lake",       "LOW",    "Chamoli",     "90 mins"]
-      ];
-
-      function getLakeColor(risk) {
-        if (risk === "HIGH")   return "#ef4444";
-        if (risk === "MEDIUM") return "#f97316";
-        return "#22c55e";
-      }
-
-      var glofLayer = L.layerGroup();
-
-      glacialLakes.forEach(function(lake) {
-        var marker = L.circleMarker([lake[0], lake[1]], {
-          radius:      10,
-          fillColor:   getLakeColor(lake[3]),
-          color:       "#ffffff",
-          weight:      2,
-          fillOpacity: 0.85
-        });
-        marker.bindPopup(
-          "<b>" + lake[2] + "</b><br>" +
-          "District: " + lake[4] + "<br>" +
-          "Risk: <b style='color:" + getLakeColor(lake[3]) + "'>" + lake[3] + "</b><br>" +
-          "Travel time to village: <b>" + lake[5] + "</b><br>" +
-          "Hazard: Glacial Lake Outburst (GLOF)"
+    Promise.all(fetches).then(function(results){
+      results.forEach(function(r){
+        var d=r.district,mm=r.mm,risk=mm>=115?'HIGH':mm>=65?'MEDIUM':'LOW';
+        var col=riskColor(risk),rc=riskClass(risk);
+        var poly=L.polygon(d.coords,{color:col,fillColor:col,fillOpacity:0.2,weight:2,dashArray:risk==='LOW'?'4 4':null});
+        poly.bindPopup(
+          '<div class="popup-title">🌧 '+d.name+' District</div>'+
+          '<div class="popup-row"><span class="popup-label">48hr Rainfall</span><span class="popup-val">'+mm+' mm</span></div>'+
+          '<div class="popup-row"><span class="popup-label">Flood Risk</span><span class="popup-risk '+rc+'">'+risk+'</span></div>'+
+          '<div class="popup-row"><span class="popup-label">Rivers at risk</span><span class="popup-val">'+d.rivers+'</span></div>'+
+          '<div class="popup-note">IMD: ≥115mm HIGH · 65–115mm MEDIUM · &lt;65mm LOW</div>'
         );
-        marker.addTo(glofLayer);
+        poly.addTo(floodLayer);
       });
-
-
-      
-      // 3. FLOOD LAYER — live rainfall data
-      
-
-      var floodLayer = L.layerGroup();
-
-      function getRainfallRisk(mm48hr) {
-        if (mm48hr >= 115) return "HIGH";
-        if (mm48hr >= 65)  return "MEDIUM";
-        return "LOW";
-      }
-
-      function getFloodColor(risk) {
-        if (risk === "HIGH")   return "#ef4444";
-        if (risk === "MEDIUM") return "#f97316";
-        return "#22c55e";
-      }
-
-      function buildRainfallURL(lat, lng) {
-        return "https://api.open-meteo.com/v1/forecast" +
-          "?latitude="  + lat +
-          "&longitude=" + lng +
-          "&daily=precipitation_sum" +
-          "&past_days=2" +
-          "&forecast_days=1" +
-          "&timezone=Asia%2FKolkata";
-      }
-
-      var allFetches = DISTRICTS.map(function(district) {
-        var url = buildRainfallURL(district.lat, district.lng);
-        return fetch(url)
-          .then(function(response) { return response.json(); })
-          .then(function(data) {
-            var precipArray = data.daily.precipitation_sum;
-            var mm48hr = precipArray[1] + precipArray[2];
-            mm48hr = Math.round(mm48hr * 10) / 10;
-            return { district: district, mm48hr: mm48hr };
-          })
-          .catch(function(error) {
-            console.log('Fetch failed for ' + district.name, error);
-            return { district: district, mm48hr: 0 };
-          });
-      });
-
-      Promise.all(allFetches).then(function(results) {
-
-        results.forEach(function(result) {
-          var district = result.district;
-          var mm48hr   = result.mm48hr;
-          var risk     = getRainfallRisk(mm48hr);
-          var color    = getFloodColor(risk);
-
-          var polygon = L.polygon(district.coords, {
-            color:       color,
-            fillColor:   color,
-            fillOpacity: 0.25,
-            weight:      2
-          });
-
-          polygon.bindPopup(
-            "<b>" + district.name + " District</b><br>" +
-            "📡 <b>LIVE 48hr Rainfall: " + mm48hr + "mm</b><br>" +
-            "Flood Risk: <b style='color:" + color + "'>" + risk + "</b><br>" +
-            "At-risk Rivers: " + district.rivers + "<br>" +
-            "<i style='color:#94a3b8;font-size:11px'>" +
-            "IMD threshold: ≥115mm HIGH | 65–115mm MEDIUM</i>"
-          );
-
-          polygon.addTo(floodLayer);
-        });
-
-        var statusEl = document.getElementById('data-status');
-        statusEl.innerText = '🟢 Live Rainfall Data';
-        statusEl.classList.remove('loading');
-        statusEl.classList.add('live');
-
-        glofLayer.addTo(map);
-
-      });
-
-
-      
-      // 4. LAYER CONTROL
-      
-
+      var s=document.getElementById('data-status');
+      s.innerText='🟢 Live Rainfall Data';s.className='data-status live';
       glofLayer.addTo(map);
+    });
 
-      function showLayer(type) {
-        map.removeLayer(glofLayer);
-        map.removeLayer(floodLayer);
+    glofLayer.addTo(map);
 
-        document.getElementById('btn-glof').classList.remove('active');
-        document.getElementById('btn-flood').classList.remove('active');
-        document.getElementById('btn-both').classList.remove('active');
+    function showLayer(type){
+      map.removeLayer(glofLayer);map.removeLayer(floodLayer);
+      ['btn-glof','btn-flood','btn-both'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+      if(type==='glof'){glofLayer.addTo(map);document.getElementById('btn-glof').classList.add('active');}
+      if(type==='flood'){floodLayer.addTo(map);document.getElementById('btn-flood').classList.add('active');}
+      if(type==='both'){glofLayer.addTo(map);floodLayer.addTo(map);document.getElementById('btn-both').classList.add('active');}
+    }
 
-        if (type === 'glof') {
-          glofLayer.addTo(map);
-          document.getElementById('btn-glof').classList.add('active');
-        }
-        if (type === 'flood') {
-          floodLayer.addTo(map);
-          document.getElementById('btn-flood').classList.add('active');
-        }
-        if (type === 'both') {
-          glofLayer.addTo(map);
-          floodLayer.addTo(map);
-          document.getElementById('btn-both').classList.add('active');
-        }
-      }
+    var legend=L.control({position:'bottomright'});
+    legend.onAdd=function(){
+      var div=L.DomUtil.create('div','map-legend');
+      div.innerHTML=
+        '<div class="legend-section-title">GLOF — Lake Risk</div>'+
+        '<div class="legend-item"><span class="l-dot" style="background:#c0392b"></span> High Risk</div>'+
+        '<div class="legend-item"><span class="l-dot" style="background:#d35400"></span> Medium Risk</div>'+
+        '<div class="legend-item"><span class="l-dot" style="background:#1e7e4a"></span> Low Risk</div>'+
+        '<div class="legend-divider"></div>'+
+        '<div class="legend-section-title">Flood — Live Rainfall</div>'+
+        '<div class="legend-item"><span class="l-swatch" style="background:#c0392b"></span> ≥115mm HIGH</div>'+
+        '<div class="legend-item"><span class="l-swatch" style="background:#d35400"></span> 65–115mm MED</div>'+
+        '<div class="legend-item"><span class="l-swatch" style="background:#1e7e4a"></span> &lt;65mm LOW</div>';
+      return div;
+    };
+    legend.addTo(map);
+  </script>
 
-
-      
-      // 5. LEGEND
-      
-
-      var legend = L.control({ position: "bottomright" });
-
-      legend.onAdd = function() {
-        var div = L.DomUtil.create('div', 'legend');
-        div.innerHTML =
-          '<div class="legend-title">GLOF — Lake Risk</div>' +
-          '<div class="legend-item"><span class="dot" style="background:#ef4444"></span> High Risk</div>' +
-          '<div class="legend-item"><span class="dot" style="background:#f97316"></span> Medium Risk</div>' +
-          '<div class="legend-item"><span class="dot" style="background:#22c55e"></span> Low Risk</div>' +
-          '<br>' +
-          '<div class="legend-title">Flood — Live Rainfall</div>' +
-          '<div class="legend-item"><span class="swatch" style="background:#ef4444;opacity:0.6"></span> ≥115mm HIGH</div>' +
-          '<div class="legend-item"><span class="swatch" style="background:#f97316;opacity:0.6"></span> 65–115mm MED</div>' +
-          '<div class="legend-item"><span class="swatch" style="background:#22c55e;opacity:0.6"></span> &lt;65mm LOW</div>';
-        return div;
-      };
-
-      legend.addTo(map);
-
-    </script>
-
-  </body>
-
+</body>
 </html>
