@@ -6,478 +6,128 @@
   <title>Umbrella — Resource Recommender</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:      #060d1a;
-      --bg2:     #0b1628;
-      --bg3:     #0f1e35;
-      --border:  rgba(56,189,248,0.12);
-      --border2: rgba(56,189,248,0.25);
-      --blue:    #38bdf8;
-      --blue-dim:rgba(56,189,248,0.08);
-      --red:     #f43f5e;
-      --orange:  #fb923c;
-      --green:   #34d399;
-      --yellow:  #fbbf24;
-      --text:    #f1f5f9;
-      --muted:   #64748b;
-      --muted2:  #94a3b8;
-      --mono:    'Space Mono', monospace;
-      --sans:    'DM Sans', sans-serif;
+      --bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;
+      --navy:#1a2744;--navy2:#243358;
+      --red:#c0392b;--red-dim:rgba(192,57,43,0.08);
+      --orange:#d35400;--orange-dim:rgba(211,84,0,0.08);
+      --green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);
+      --border:#ddd9ce;--border2:#c8c3b5;
+      --text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;
+      --serif:'Lora',Georgia,serif;
+      --sans:'Instrument Sans',sans-serif;
+      --mono:'IBM Plex Mono',monospace;
     }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .page-header{background:var(--navy);padding:40px 48px 36px;border-bottom:3px solid var(--red);display:flex;align-items:flex-end;justify-content:space-between;}
+    .page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+    .page-title{font-family:var(--serif);font-size:36px;font-weight:600;color:white;margin-bottom:8px;}
+    .page-desc{font-size:13px;color:rgba(255,255,255,0.5);}
+    .status-badge{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);}
+    .status-badge.live{border-color:rgba(74,222,128,0.4);color:#4ade80;background:rgba(74,222,128,0.08);}
+    .status-badge.error{border-color:rgba(192,57,43,0.4);color:#f87171;background:rgba(192,57,43,0.08);}
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-    }
+    /* Situation strip */
+    .sit-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+    .sit-cell{background:var(--bg2);padding:16px 20px 12px;position:relative;}
+    .sit-cell::after{content:'';position:absolute;top:0;left:0;width:100%;height:3px;}
+    .sit-cell.c-red::after{background:var(--red);}
+    .sit-cell.c-orange::after{background:var(--orange);}
+    .sit-cell.c-green::after{background:var(--green);}
+    .sit-cell.c-navy::after{background:var(--navy);}
+    .sit-cell.c-blue::after{background:#2563eb;}
+    .sit-cell.c-gray::after{background:var(--muted2);}
+    .sit-label{font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;}
+    .sit-value{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;margin-bottom:2px;}
+    .sit-sub{font-size:11px;color:var(--muted2);}
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(56,189,248,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(244,63,94,0.03) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
+    .content{padding:28px 48px 48px;}
 
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-      z-index: 0;
-      mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
-    }
+    /* Two col */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
 
-    .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background-color: rgba(6,13,26,0.85);
-      backdrop-filter: blur(12px);
-      padding: 0 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      height: 60px;
-    }
-
-    .logo {
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--blue);
-      letter-spacing: 3px;
-    }
-
-    .logo span { color: var(--muted); font-weight: 400; }
-
-    .nav-links { display: flex; gap: 8px; list-style: none; }
-
-    .nav-links a {
-      color: var(--muted2);
-      text-decoration: none;
-      font-size: 12px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-family: var(--mono);
-      padding: 6px 12px;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    .nav-links a:hover, .nav-links a.active {
-      color: var(--blue);
-      background-color: var(--blue-dim);
-    }
-
-    .content {
-      position: relative;
-      z-index: 1;
-      padding: 40px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* Page header */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 40px;
-    }
-
-    .page-title {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 8px;
-    }
-
-    .page-heading {
-      font-family: var(--mono);
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 2px;
-      margin-bottom: 4px;
-    }
-
-    .page-sub {
-      font-size: 13px;
-      color: var(--muted2);
-      font-weight: 300;
-    }
-
-    .status-badge {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 6px 14px;
-      border-radius: 2px;
-      border: 1px solid;
-      letter-spacing: 1px;
-    }
-
-    .status-badge.loading { color: var(--orange); border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.05); }
-    .status-badge.live    { color: var(--green);  border-color: rgba(52,211,153,0.3);  background: rgba(52,211,153,0.05); }
-    .status-badge.error   { color: var(--red);    border-color: rgba(244,63,94,0.3);   background: rgba(244,63,94,0.05); }
-
-    /* Situation Summary */
-    .situation-bar {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 20px 28px;
-      margin-bottom: 32px;
-      display: flex;
-      align-items: center;
-      gap: 40px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .situation-bar::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0;
-      width: 3px; height: 100%;
-    }
-
-    .situation-bar.critical::before { background: var(--red); }
-    .situation-bar.elevated::before { background: var(--orange); }
-    .situation-bar.normal::before   { background: var(--green); }
-
-    .sit-item { text-align: center; }
-
-    .sit-value {
-      font-family: var(--mono);
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .sit-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .sit-divider {
-      width: 1px;
-      height: 40px;
-      background: var(--border2);
-    }
-
-    /* Section title */
-    .section-title {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(to right, var(--border2), transparent);
-    }
-
-    /* Grid layouts */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    /* Section heading */
+    .section-heading{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 
     /* Cards */
-    .card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 24px;
-    }
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .card-header{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);}
+    .card-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+    .card-body{padding:4px 0;}
 
-    .card-title {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted2);
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    /* Deployment recommendations */
-    .deploy-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .deploy-item:last-child { border-bottom: none; }
-
-    .deploy-priority {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 1px;
-      letter-spacing: 1px;
-      flex-shrink: 0;
-    }
-
-    .p1 { background: rgba(244,63,94,0.15);  color: var(--red);    border: 1px solid rgba(244,63,94,0.3); }
-    .p2 { background: rgba(251,146,60,0.15); color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
-    .p3 { background: rgba(52,211,153,0.1);  color: var(--green);  border: 1px solid rgba(52,211,153,0.2); }
-
-    .deploy-text {
-      font-size: 13px;
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    .deploy-sub {
-      font-size: 11px;
-      color: var(--muted2);
-      margin-top: 3px;
-      font-family: var(--mono);
-    }
+    /* Deployment items */
+    .deploy-item{display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);}
+    .deploy-item:last-child{border-bottom:none;}
+    .priority-tag{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:2px;letter-spacing:1px;flex-shrink:0;}
+    .p1{background:var(--red-dim);color:var(--red);border:1px solid rgba(192,57,43,0.25);}
+    .p2{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(211,84,0,0.25);}
+    .p3{background:var(--green-dim);color:var(--green);border:1px solid rgba(30,126,74,0.2);}
+    .deploy-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+    .deploy-sub{font-size:11px;color:var(--muted2);font-family:var(--mono);}
 
     /* Evacuation list */
-    .evac-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
+    .evac-row{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);}
+    .evac-row:last-child{border-bottom:none;}
+    .evac-rank{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--muted2);width:28px;flex-shrink:0;}
+    .evac-info{flex:1;padding:0 14px;}
+    .evac-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+    .evac-detail{font-size:11px;color:var(--muted2);}
+    .evac-right{text-align:right;}
+    .evac-score{font-family:var(--mono);font-size:20px;font-weight:500;}
+    .evac-pop{font-size:11px;color:var(--muted2);font-family:var(--mono);}
 
-    .evac-row:last-child { border-bottom: none; }
+    /* Alert generator */
+    .lang-toggle{display:flex;gap:8px;margin-bottom:14px;}
+    .lang-btn{padding:6px 16px;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;}
+    .lang-btn.active{background:var(--navy);border-color:var(--navy);color:white;}
 
-    .evac-rank {
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--muted);
-      width: 32px;
-      flex-shrink: 0;
-    }
+    .alert-box{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:18px;font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;min-height:120px;margin-bottom:14px;}
 
-    .evac-info { flex: 1; padding: 0 16px; }
+    .action-btn{padding:9px 18px;border-radius:3px;border:none;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;margin-right:8px;}
+    .btn-green{background:var(--green);color:white;}
+    .btn-navy{background:var(--navy);color:white;}
+    .btn-orange{background:var(--orange);color:white;}
+    .action-btn:hover{opacity:.85;}
 
-    .evac-name {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
+    /* Report */
+    .report-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px;margin-top:20px;}
+    .report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .report-title{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+    .report-meta{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+    .report-section{margin-bottom:18px;}
+    .report-section-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+    .report-line{font-size:13px;color:var(--muted);line-height:1.8;padding-left:14px;border-left:2px solid var(--border2);}
 
-    .evac-detail {
-      font-size: 11px;
-      color: var(--muted2);
-    }
+    .loading-text{text-align:center;color:var(--muted2);font-family:var(--mono);font-size:12px;padding:24px;}
 
-    .evac-score {
-      font-family: var(--mono);
-      font-size: 20px;
-      font-weight: 700;
-      text-align: right;
-    }
-
-    .evac-pop {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      text-align: right;
-    }
-
-    /* WhatsApp alert */
-    .alert-box {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 20px;
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.8;
-      color: var(--text);
-      white-space: pre-wrap;
-      margin-bottom: 16px;
-      min-height: 120px;
-    }
-
-    .lang-toggle {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .lang-btn {
-      padding: 6px 16px;
-      border-radius: 2px;
-      border: 1px solid var(--border);
-      background: var(--bg3);
-      color: var(--muted2);
-      font-family: var(--mono);
-      font-size: 11px;
-      cursor: pointer;
-      letter-spacing: 1px;
-    }
-
-    .lang-btn.active {
-      background: var(--blue-dim);
-      border-color: var(--blue);
-      color: var(--blue);
-    }
-
-    .action-btn {
-      padding: 10px 20px;
-      border-radius: 2px;
-      border: none;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-right: 8px;
-      transition: all 0.2s;
-    }
-
-    .btn-green  { background: var(--green);  color: var(--bg); }
-    .btn-blue   { background: var(--blue);   color: var(--bg); }
-    .btn-orange { background: var(--orange); color: var(--bg); }
-
-    .action-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-
-    /* Situation report */
-    .report-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 32px;
-      margin-bottom: 32px;
-    }
-
-    .report-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .report-title {
-      font-family: var(--mono);
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 2px;
-      margin-bottom: 4px;
-    }
-
-    .report-meta {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-    }
-
-    .report-section {
-      margin-bottom: 20px;
-    }
-
-    .report-section-title {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 10px;
-    }
-
-    .report-line {
-      font-size: 13px;
-      color: var(--muted2);
-      line-height: 1.8;
-      padding-left: 16px;
-      border-left: 2px solid var(--border2);
-    }
-
-    /* Loading state */
-    .loading-text {
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 12px;
-      font-style: italic;
-      padding: 20px 0;
-      text-align: center;
-    }
-
-    .fade-in {
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeIn 0.5s ease forwards;
-    }
-
-    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-    .d1 { animation-delay: 0.1s; }
-    .d2 { animation-delay: 0.2s; }
-    .d3 { animation-delay: 0.3s; }
-    .d4 { animation-delay: 0.4s; }
+    .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
   </style>
 </head>
-
 <body>
 
   <nav class="navbar">
-    <div class="logo">☂ <span>//</span> UMBRELLA</div>
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
     <ul class="nav-links">
       <li><a href="index.html">Dashboard</a></li>
       <li><a href="map.html">Risk Map</a></li>
@@ -487,113 +137,98 @@
     </ul>
   </nav>
 
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Live Intelligence · Dynamic Recommendations</div>
+      <div class="page-title">Resource Recommender</div>
+      <div class="page-desc">NDRF deployment, evacuation priorities and alerts — all driven by live data</div>
+    </div>
+    <span class="status-badge" id="status-badge">⏳ Loading...</span>
+  </div>
+
+  <!-- Situation Strip -->
+  <div class="sit-strip fade-up d1">
+    <div class="sit-cell c-red">
+      <div class="sit-label">High Risk Villages</div>
+      <div class="sit-value" id="sit-high" style="color:var(--red)">—</div>
+      <div class="sit-sub">Score ≥ 70</div>
+    </div>
+    <div class="sit-cell c-orange">
+      <div class="sit-label">Medium Risk</div>
+      <div class="sit-value" id="sit-medium" style="color:var(--orange)">—</div>
+      <div class="sit-sub">Score 45–69</div>
+    </div>
+    <div class="sit-cell c-red">
+      <div class="sit-label">People at Risk</div>
+      <div class="sit-value" id="sit-pop" style="color:var(--red);font-size:18px;padding-top:4px">—</div>
+      <div class="sit-sub">High risk villages</div>
+    </div>
+    <div class="sit-cell c-blue">
+      <div class="sit-label">Peak Rainfall</div>
+      <div class="sit-value" id="sit-rain" style="color:#2563eb">—</div>
+      <div class="sit-sub" id="sit-rain-dist">48hr cumulative</div>
+    </div>
+    <div class="sit-cell c-orange">
+      <div class="sit-label">Roads Blocked</div>
+      <div class="sit-value" id="sit-roads" style="color:var(--orange)">—</div>
+      <div class="sit-sub">Village access</div>
+    </div>
+    <div class="sit-cell c-gray">
+      <div class="sit-label">Assessment Time</div>
+      <div class="sit-value" id="sit-time" style="color:var(--muted);font-size:16px;padding-top:6px">—</div>
+      <div class="sit-sub">IST</div>
+    </div>
+  </div>
+
   <div class="content">
 
-    <!-- Page Header -->
-    <div class="page-header fade-in">
-      <div>
-        <div class="page-title">⚡ Live Intelligence</div>
-        <div class="page-heading">RESOURCE RECOMMENDER</div>
-        <div class="page-sub">
-          Dynamic recommendations based on live village scores and rainfall data
-        </div>
-      </div>
-      <span class="status-badge loading" id="status-badge">
-        ⏳ Loading live data...
-      </span>
-    </div>
-
-    <!-- Situation Summary Bar -->
-    <div class="situation-bar normal fade-in d1" id="situation-bar">
-      <div class="sit-item">
-        <div class="sit-value" id="sit-high" style="color:var(--red)">—</div>
-        <div class="sit-label">High Risk Villages</div>
-      </div>
-      <div class="sit-divider"></div>
-      <div class="sit-item">
-        <div class="sit-value" id="sit-medium" style="color:var(--orange)">—</div>
-        <div class="sit-label">Medium Risk</div>
-      </div>
-      <div class="sit-divider"></div>
-      <div class="sit-item">
-        <div class="sit-value" id="sit-pop" style="color:var(--red)">—</div>
-        <div class="sit-label">People at Risk</div>
-      </div>
-      <div class="sit-divider"></div>
-      <div class="sit-item">
-        <div class="sit-value" id="sit-rainfall" style="color:var(--blue)">—</div>
-        <div class="sit-label">Peak 48hr Rainfall</div>
-      </div>
-      <div class="sit-divider"></div>
-      <div class="sit-item">
-        <div class="sit-value" id="sit-roads" style="color:var(--orange)">—</div>
-        <div class="sit-label">Roads Blocked</div>
-      </div>
-      <div class="sit-divider"></div>
-      <div class="sit-item">
-        <div class="sit-value" id="sit-time" style="color:var(--muted2);font-size:16px;padding-top:8px;">—</div>
-        <div class="sit-label">Assessment Time</div>
-      </div>
-    </div>
-
     <!-- Deployment + Evacuation -->
-    <div class="two-col fade-in d2">
+    <div class="two-col fade-up d2">
 
-      <!-- NDRF/SDRF Deployment -->
       <div class="card">
-        <div class="card-title">🪖 NDRF / SDRF Deployment Orders</div>
-        <div id="deployment-list">
+        <div class="card-header">
+          <div class="card-title">NDRF / SDRF Deployment Orders</div>
+        </div>
+        <div class="card-body" id="deployment-list">
           <div class="loading-text">Calculating deployment needs...</div>
         </div>
       </div>
 
-      <!-- Evacuation Priority -->
       <div class="card">
-        <div class="card-title">🚨 Evacuation Priority List</div>
-        <div id="evacuation-list">
+        <div class="card-header">
+          <div class="card-title">Evacuation Priority List</div>
+        </div>
+        <div class="card-body" id="evacuation-list">
           <div class="loading-text">Ranking villages by urgency...</div>
         </div>
       </div>
 
     </div>
 
-    <!-- WhatsApp Alert Generator -->
-    <div class="section-title fade-in d3">📱 Alert Generator</div>
-
-    <div class="card fade-in d3" style="margin-bottom:32px;">
-      <div class="card-title">WhatsApp / SMS Alert — Auto-generated from live data</div>
-
-      <div class="lang-toggle">
-        <button class="lang-btn active" onclick="switchLang('en', this)">English</button>
-        <button class="lang-btn" onclick="switchLang('hi', this)">हिंदी</button>
+    <!-- Alert Generator -->
+    <div class="card fade-up d3" style="margin-bottom:20px;">
+      <div class="card-header">
+        <div class="card-title">WhatsApp / SMS Alert — Auto-generated from live data</div>
       </div>
-
-      <div class="alert-box" id="alert-text">
-        Generating alert from live data...
+      <div style="padding:20px;">
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="switchLang('en',this)">English</button>
+          <button class="lang-btn" onclick="switchLang('hi',this)">हिंदी</button>
+        </div>
+        <div class="alert-box" id="alert-text">Generating alert from live data...</div>
+        <button class="action-btn btn-green" onclick="copyAlert()">Copy Alert</button>
+        <button class="action-btn btn-navy" onclick="generateAlert(currentLang)">Regenerate</button>
       </div>
-
-      <button class="action-btn btn-green" onclick="copyAlert()">
-        📋 Copy Alert
-      </button>
-      <button class="action-btn btn-blue" onclick="generateAlert('en')">
-        🔄 Regenerate
-      </button>
     </div>
 
     <!-- Situation Report -->
-    <div class="section-title fade-in d4">📄 Situation Report</div>
-
-    <div class="report-card fade-in d4" id="situation-report">
+    <div class="report-card fade-up d4">
       <div class="report-header">
         <div>
-          <div class="report-title">UMBRELLA SITUATION REPORT</div>
-          <div class="report-meta" id="report-meta">
-            Generating...
-          </div>
+          <div class="report-title">Umbrella Situation Report</div>
+          <div class="report-meta" id="report-meta">Generating...</div>
         </div>
-        <button class="action-btn btn-orange" onclick="printReport()">
-          🖨 Download / Print
-        </button>
+        <button class="action-btn btn-orange" onclick="window.print()">Print / Download PDF</button>
       </div>
       <div id="report-body">
         <div class="loading-text">Building situation report from live data...</div>
@@ -602,375 +237,210 @@
 
   </div>
 
-
   <script>
-
     var BACKEND = "https://web-production-517aa.up.railway.app";
     var currentLang = 'en';
     var liveData = null;
 
-
-
-    // FETCH ALL LIVE DATA
-
-
     Promise.all([
-      fetch(BACKEND + "/villages").then(function(r) { return r.json(); }),
-      fetch(BACKEND + "/rainfall").then(function(r) { return r.json(); })
+      fetch(BACKEND + "/villages").then(function(r){return r.json();}),
+      fetch(BACKEND + "/rainfall").then(function(r){return r.json();})
     ])
-    .then(function(results) {
+    .then(function(results){
+      var villages  = results[0].villages;
+      var districts = results[1].districts;
 
-      var villageData  = results[0];
-      var rainfallData = results[1];
+      var peakMm = 0, peakDist = '';
+      districts.forEach(function(d){ if(d.mm_48hr>peakMm){peakMm=d.mm_48hr;peakDist=d.district;} });
 
-      var villages  = villageData.villages;
-      var districts = rainfallData.districts;
+      var high    = villages.filter(function(v){return v.risk_level==='HIGH';});
+      var med     = villages.filter(function(v){return v.risk_level==='MEDIUM';});
+      var blocked = villages.filter(function(v){return !v.road_safe;});
+      var atRisk  = high.reduce(function(s,v){return s+v.population;},0);
 
-      // Find peak rainfall
-      var peakMm   = 0;
-      var peakDist = '';
-      districts.forEach(function(d) {
-        if (d.mm_48hr > peakMm) {
-          peakMm   = d.mm_48hr;
-          peakDist = d.district;
-        }
-      });
+      liveData = {villages:villages, highRisk:high, medRisk:med, roadsBlocked:blocked, atRiskPop:atRisk, peakMm:peakMm, peakDist:peakDist, districts:districts};
 
-      // Categorise villages
-      var highRisk   = villages.filter(function(v) { return v.risk_level === 'HIGH'; });
-      var medRisk    = villages.filter(function(v) { return v.risk_level === 'MEDIUM'; });
-      var roadsBlocked = villages.filter(function(v) { return !v.road_safe; });
-      var atRiskPop  = highRisk.reduce(function(sum, v) { return sum + v.population; }, 0);
-
-      // Store globally for alert/report generation
-      liveData = {
-        villages:     villages,
-        highRisk:     highRisk,
-        medRisk:      medRisk,
-        roadsBlocked: roadsBlocked,
-        atRiskPop:    atRiskPop,
-        peakMm:       peakMm,
-        peakDist:     peakDist,
-        districts:    districts
-      };
-
-      // Update status badge
       var badge = document.getElementById('status-badge');
       badge.className = 'status-badge live';
-      badge.innerText = '🟢 Live Data — ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      badge.innerText = '🟢 Live — ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
 
-      // Update situation bar
-      var overallRisk = highRisk.length > 0 ? 'critical'
-                      : medRisk.length > 3  ? 'elevated' : 'normal';
-      document.getElementById('situation-bar').className =
-        'situation-bar ' + overallRisk + ' fade-in d1';
+      document.getElementById('sit-high').innerText   = high.length;
+      document.getElementById('sit-medium').innerText = med.length;
+      document.getElementById('sit-pop').innerText    = atRisk.toLocaleString();
+      document.getElementById('sit-rain').innerText   = peakMm + 'mm';
+      document.getElementById('sit-rain-dist').innerText = peakDist;
+      document.getElementById('sit-roads').innerText  = blocked.length;
+      document.getElementById('sit-time').innerText   = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false});
 
-      document.getElementById('sit-high').innerText     = highRisk.length;
-      document.getElementById('sit-medium').innerText   = medRisk.length;
-      document.getElementById('sit-pop').innerText      = atRiskPop.toLocaleString();
-      document.getElementById('sit-rainfall').innerText = peakMm + 'mm';
-      document.getElementById('sit-roads').innerText    = roadsBlocked.length;
-      document.getElementById('sit-time').innerText     = new Date().toLocaleTimeString('en-IN', {
-        hour: '2-digit', minute: '2-digit', hour12: false
-      });
-
-      // Build all sections
       buildDeployment(liveData);
       buildEvacuation(liveData);
       generateAlert('en');
       buildReport(liveData);
-
     })
-    .catch(function() {
-      var badge = document.getElementById('status-badge');
-      badge.className = 'status-badge error';
-      badge.innerText = '🔴 Server Offline';
-
-      ['deployment-list','evacuation-list','alert-text','report-body'].forEach(function(id) {
-        document.getElementById(id).innerHTML =
-          '<div class="loading-text" style="color:var(--red)">⚠ Backend offline — cannot generate recommendations</div>';
+    .catch(function(){
+      document.getElementById('status-badge').className = 'status-badge error';
+      document.getElementById('status-badge').innerText = '🔴 Server Offline';
+      ['deployment-list','evacuation-list','report-body'].forEach(function(id){
+        document.getElementById(id).innerHTML = '<div class="loading-text" style="color:var(--red)">⚠ Backend offline</div>';
       });
+      document.getElementById('alert-text').innerText = '⚠ Cannot generate alert — backend offline';
     });
 
-
-
-    // DEPLOYMENT RECOMMENDATIONS
-
-
-    function buildDeployment(d) {
+    function buildDeployment(d){
       var html = '';
-
-      if (d.highRisk.length === 0 && d.medRisk.length <= 2) {
-
-        html += deployItem('P3', 'Routine Monitoring Active',
-          'No immediate deployment required. SDRF teams on standby.');
-
+      if(d.highRisk.length===0 && d.medRisk.length<=2){
+        html += dItem('P3','Routine Monitoring Active','No immediate deployment required. SDRF teams on standby.');
       } else {
-
-        if (d.highRisk.length > 0) {
-          var names = d.highRisk.slice(0, 3).map(function(v) { return v.name; }).join(', ');
-          html += deployItem('P1',
-            'Deploy NDRF Team — ' + d.highRisk.length + ' critical village' + (d.highRisk.length > 1 ? 's' : ''),
-            'Immediate deployment to: ' + names +
-            (d.highRisk.length > 3 ? ' + ' + (d.highRisk.length - 3) + ' more' : ''));
+        if(d.highRisk.length>0){
+          var names = d.highRisk.slice(0,3).map(function(v){return v.name;}).join(', ');
+          html += dItem('P1','Deploy NDRF — '+d.highRisk.length+' critical village'+(d.highRisk.length>1?'s':''),
+            'Immediate deployment to: '+names+(d.highRisk.length>3?' + '+(d.highRisk.length-3)+' more':''));
         }
-
-        if (d.roadsBlocked.length > 0) {
-          html += deployItem('P1',
-            'Helicopter Standby — ' + d.roadsBlocked.length + ' village' + (d.roadsBlocked.length > 1 ? 's' : '') + ' road-blocked',
-            'Aerial evacuation may be required. Alert Gauchar/Dehradun airstrips.');
+        if(d.roadsBlocked.length>0){
+          html += dItem('P1','Helicopter Standby — '+d.roadsBlocked.length+' village'+(d.roadsBlocked.length>1?'s':'')+' road-blocked',
+            'Alert Gauchar / Dehradun airstrips. Aerial evacuation may be required.');
         }
-
-        if (d.medRisk.length > 0) {
-          html += deployItem('P2',
-            'SDRF Teams on Standby — ' + d.medRisk.length + ' medium risk villages',
-            'Pre-position teams at district HQ. Monitor rainfall every 3 hours.');
+        if(d.medRisk.length>0){
+          html += dItem('P2','SDRF on Standby — '+d.medRisk.length+' medium risk villages',
+            'Pre-position at district HQ. Monitor rainfall every 3 hours.');
         }
-
-        if (d.peakMm >= 65) {
-          html += deployItem('P2',
-            'Flood Warning — ' + d.peakDist + ' district (' + d.peakMm + 'mm / 48hr)',
+        if(d.peakMm>=65){
+          html += dItem('P2','Flood Warning — '+d.peakDist+' ('+d.peakMm+'mm / 48hr)',
             'River levels rising. Alert downstream villages. CWC gauge check required.');
         }
-
-        html += deployItem('P3',
-          'Relief Camps — Prepare capacity for ' + d.atRiskPop.toLocaleString() + ' people',
+        html += dItem('P3','Relief Camps — Prepare for '+d.atRiskPop.toLocaleString()+' people',
           'Activate government schools and community halls in safe zones.');
       }
-
       document.getElementById('deployment-list').innerHTML = html;
     }
 
-    function deployItem(priority, title, sub) {
+    function dItem(p, title, sub){
       return '<div class="deploy-item">' +
-        '<span class="deploy-priority ' + priority.toLowerCase() + '">' + priority + '</span>' +
-        '<div>' +
-          '<div class="deploy-text">' + title + '</div>' +
-          '<div class="deploy-sub">' + sub + '</div>' +
-        '</div>' +
-      '</div>';
+        '<span class="priority-tag '+p.toLowerCase()+'">'+p+'</span>' +
+        '<div><div class="deploy-title">'+title+'</div><div class="deploy-sub">'+sub+'</div></div>' +
+        '</div>';
     }
 
-
-
-    // EVACUATION PRIORITY LIST
-
-
-    function buildEvacuation(d) {
-      var sorted = d.villages.slice().sort(function(a, b) {
-        return b.score - a.score;
-      });
-
-      var top = sorted.slice(0, 8);
+    function buildEvacuation(d){
+      var sorted = d.villages.slice().sort(function(a,b){return b.score-a.score;});
       var html = '';
-
-      top.forEach(function(v, i) {
-        var color = v.score >= 70 ? 'var(--red)'
-                  : v.score >= 45 ? 'var(--orange)'
-                  : 'var(--green)';
-
-        var urgency = v.score >= 70
-          ? (v.road_safe ? 'Evacuate by road NOW' : 'Aerial evacuation required')
-          : v.score >= 45 ? 'Prepare for evacuation'
-          : 'Monitor — low priority';
-
+      sorted.slice(0,8).forEach(function(v,i){
+        var c = v.score>=70?'var(--red)':v.score>=45?'var(--orange)':'var(--green)';
+        var urgency = v.score>=70?(v.road_safe?'Evacuate by road now':'Aerial evacuation required'):
+                     v.score>=45?'Prepare for evacuation':'Monitor — low priority';
         html +=
           '<div class="evac-row">' +
-            '<div class="evac-rank">' + (i + 1) + '</div>' +
+            '<div class="evac-rank">'+(i+1)+'</div>' +
             '<div class="evac-info">' +
-              '<div class="evac-name">' + v.name + '</div>' +
-              '<div class="evac-detail">' + v.district + ' · ' + urgency + '</div>' +
+              '<div class="evac-name">'+v.name+'</div>' +
+              '<div class="evac-detail">'+v.district+' · '+urgency+'</div>' +
             '</div>' +
-            '<div>' +
-              '<div class="evac-score" style="color:' + color + '">' + v.score + '</div>' +
-              '<div class="evac-pop">' + v.population.toLocaleString() + ' people</div>' +
+            '<div class="evac-right">' +
+              '<div class="evac-score" style="color:'+c+'">'+v.score+'</div>' +
+              '<div class="evac-pop">'+v.population.toLocaleString()+'</div>' +
             '</div>' +
           '</div>';
       });
-
       document.getElementById('evacuation-list').innerHTML = html;
     }
 
-
-
-    // ALERT GENERATOR
-
-
-    function generateAlert(lang) {
+    function generateAlert(lang){
       currentLang = lang;
-      if (!liveData) return;
-
-      var d    = liveData;
-      var now  = new Date();
-      var time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-      var date = now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-
-      var topVillage = d.highRisk.length > 0 ? d.highRisk[0] : (d.medRisk.length > 0 ? d.medRisk[0] : null);
-
+      if(!liveData){return;}
+      var d = liveData;
+      var now = new Date();
+      var time = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+      var date = now.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
       var alert = '';
 
-      if (lang === 'en') {
-
-        alert = '🚨 UMBRELLA DISASTER ALERT\n';
-        alert += date + ' | ' + time + ' IST\n\n';
-
-        if (d.highRisk.length > 0) {
-          alert += '⚠ HIGH RISK: ' + d.highRisk.length + ' village(s) at critical risk\n';
-          d.highRisk.slice(0, 3).forEach(function(v) {
-            alert += '  • ' + v.name + ' (' + v.district + ') — Score: ' + v.score + '\n';
-          });
+      if(lang==='en'){
+        alert = '🚨 UMBRELLA DISASTER ALERT\n'+date+' | '+time+' IST\n\n';
+        if(d.highRisk.length>0){
+          alert += '⚠ HIGH RISK: '+d.highRisk.length+' village(s) at critical risk\n';
+          d.highRisk.slice(0,3).forEach(function(v){ alert += '  • '+v.name+' ('+v.district+') — Score: '+v.score+'\n'; });
         }
-
-        alert += '\n📡 Peak Rainfall: ' + d.peakMm + 'mm in ' + d.peakDist + ' (48hr)\n';
-        alert += '🚧 Roads Blocked: ' + d.roadsBlocked.length + ' village(s)\n';
-        alert += '👥 Population at Risk: ' + d.atRiskPop.toLocaleString() + '\n\n';
-
-        if (d.highRisk.length > 0) {
-          alert += '🔴 IMMEDIATE ACTION REQUIRED\n';
-          alert += 'NDRF deployment initiated. Avoid all river crossings.\n';
-        } else if (d.medRisk.length > 2) {
-          alert += '🟠 ELEVATED ALERT — SDRF on standby\n';
-          alert += 'Monitor conditions. Avoid hill travel after dark.\n';
-        } else {
-          alert += '🟢 CONDITIONS NORMAL — Monitoring active\n';
-        }
-
+        alert += '\n📡 Peak Rainfall: '+d.peakMm+'mm in '+d.peakDist+' (48hr)\n';
+        alert += '🚧 Roads Blocked: '+d.roadsBlocked.length+' village(s)\n';
+        alert += '👥 Population at Risk: '+d.atRiskPop.toLocaleString()+'\n\n';
+        if(d.highRisk.length>0) alert += '🔴 IMMEDIATE ACTION REQUIRED\nNDRF deployment initiated. Avoid all river crossings.\n';
+        else if(d.medRisk.length>2) alert += '🟠 ELEVATED ALERT — SDRF on standby\nMonitor conditions. Avoid hill travel after dark.\n';
+        else alert += '🟢 CONDITIONS NORMAL — Monitoring active\n';
         alert += '\nSource: Umbrella Early Warning System\numbrella-dashboard.netlify.app';
-
       } else {
-
-        alert = '🚨 अम्ब्रेला आपदा चेतावनी\n';
-        alert += date + ' | ' + time + ' IST\n\n';
-
-        if (d.highRisk.length > 0) {
-          alert += '⚠ उच्च जोखिम: ' + d.highRisk.length + ' गांव(ों) में गंभीर खतरा\n';
-          d.highRisk.slice(0, 3).forEach(function(v) {
-            alert += '  • ' + v.name + ' (' + v.district + ') — स्कोर: ' + v.score + '\n';
-          });
+        alert = '🚨 अम्ब्रेला आपदा चेतावनी\n'+date+' | '+time+' IST\n\n';
+        if(d.highRisk.length>0){
+          alert += '⚠ उच्च जोखिम: '+d.highRisk.length+' गांव(ों) में गंभीर खतरा\n';
+          d.highRisk.slice(0,3).forEach(function(v){ alert += '  • '+v.name+' ('+v.district+') — स्कोर: '+v.score+'\n'; });
         }
-
-        alert += '\n📡 अधिकतम वर्षा: ' + d.peakMm + 'मिमी — ' + d.peakDist + ' (48 घंटे)\n';
-        alert += '🚧 अवरुद्ध सड़कें: ' + d.roadsBlocked.length + ' गांव\n';
-        alert += '👥 जोखिम में जनसंख्या: ' + d.atRiskPop.toLocaleString() + '\n\n';
-
-        if (d.highRisk.length > 0) {
-          alert += '🔴 तत्काल कार्रवाई आवश्यक\n';
-          alert += 'NDRF तैनात। सभी नदी पारगमन से बचें।\n';
-        } else if (d.medRisk.length > 2) {
-          alert += '🟠 सतर्कता — SDRF तैयार\n';
-          alert += 'स्थिति की निगरानी करें। रात को पहाड़ी यात्रा न करें।\n';
-        } else {
-          alert += '🟢 स्थिति सामान्य — निगरानी जारी\n';
-        }
-
+        alert += '\n📡 अधिकतम वर्षा: '+d.peakMm+'मिमी — '+d.peakDist+' (48 घंटे)\n';
+        alert += '🚧 अवरुद्ध सड़कें: '+d.roadsBlocked.length+' गांव\n';
+        alert += '👥 जोखिम में जनसंख्या: '+d.atRiskPop.toLocaleString()+'\n\n';
+        if(d.highRisk.length>0) alert += '🔴 तत्काल कार्रवाई आवश्यक\nNDRF तैनात। सभी नदी पारगमन से बचें।\n';
+        else if(d.medRisk.length>2) alert += '🟠 सतर्कता — SDRF तैयार\n';
+        else alert += '🟢 स्थिति सामान्य — निगरानी जारी\n';
         alert += '\nस्रोत: अम्ब्रेला प्रारंभिक चेतावनी प्रणाली\numbrella-dashboard.netlify.app';
       }
-
       document.getElementById('alert-text').innerText = alert;
     }
 
-    function switchLang(lang, btn) {
-      document.querySelectorAll('.lang-btn').forEach(function(b) {
-        b.classList.remove('active');
-      });
+    function switchLang(lang, btn){
+      document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
       btn.classList.add('active');
       generateAlert(lang);
     }
 
-    function copyAlert() {
-      var text = document.getElementById('alert-text').innerText;
-      navigator.clipboard.writeText(text).then(function() {
-        var btn = event.target;
-        btn.innerText = '✓ Copied!';
-        setTimeout(function() { btn.innerText = '📋 Copy Alert'; }, 2000);
+    function copyAlert(){
+      navigator.clipboard.writeText(document.getElementById('alert-text').innerText).then(function(){
+        var btn = event.target; btn.innerText = '✓ Copied!';
+        setTimeout(function(){btn.innerText='Copy Alert';},2000);
       });
     }
 
-
-
-    // SITUATION REPORT
-
-
-    function buildReport(d) {
+    function buildReport(d){
       var now  = new Date();
-      var time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-      var date = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      var time = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+      var date = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      document.getElementById('report-meta').innerText = 'Generated: '+date+' at '+time+' IST  |  Umbrella Early Warning System';
 
-      document.getElementById('report-meta').innerText =
-        'Generated: ' + date + ' at ' + time + ' IST  |  Source: Umbrella Early Warning System';
-
-      var overallStatus = d.highRisk.length > 0 ? 'CRITICAL'
-                        : d.medRisk.length > 2  ? 'ELEVATED' : 'NORMAL';
-
+      var status = d.highRisk.length>0?'CRITICAL':d.medRisk.length>2?'ELEVATED':'NORMAL';
       var html = '';
 
-      // Section 1 — Overview
-      html += reportSection('1. SITUATION OVERVIEW',
-        'As of ' + time + ' IST on ' + date + ', Umbrella\'s automated assessment of ' +
-        d.villages.length + ' villages across 6 districts of Uttarakhand indicates an overall ' +
-        overallStatus + ' threat level. ' +
-        d.highRisk.length + ' village(s) are at HIGH risk, ' +
-        d.medRisk.length + ' at MEDIUM risk, with a combined at-risk population of ' +
-        d.atRiskPop.toLocaleString() + ' people. ' +
-        'Peak 48-hour cumulative rainfall recorded: ' + d.peakMm + 'mm in ' + d.peakDist + ' district.'
-      );
+      html += rSection('1. Situation Overview',
+        'As of '+time+' IST on '+date+', assessment of '+d.villages.length+' villages across 6 districts shows overall '+status+' threat level. '+
+        d.highRisk.length+' village(s) at HIGH risk, '+d.medRisk.length+' at MEDIUM risk. '+
+        'Combined at-risk population: '+d.atRiskPop.toLocaleString()+'. Peak 48-hour rainfall: '+d.peakMm+'mm in '+d.peakDist+'.');
 
-      // Section 2 — High Risk Villages
-      if (d.highRisk.length > 0) {
-        var villageLines = d.highRisk.map(function(v) {
-          return v.name + ' (' + v.district + ') — Risk Score: ' + v.score +
-            ', Population: ' + v.population.toLocaleString() +
-            ', Road: ' + (v.road_safe ? 'Open' : 'BLOCKED') +
-            ', GLOF travel time: ' + (v.travel_time === 999 ? 'N/A' : v.travel_time + ' min');
-        }).join('\n');
-        html += reportSection('2. HIGH RISK VILLAGES — IMMEDIATE ACTION REQUIRED', villageLines);
+      if(d.highRisk.length>0){
+        html += rSection('2. High Risk Villages — Immediate Action Required',
+          d.highRisk.map(function(v){
+            return v.name+' ('+v.district+') — Score: '+v.score+', Population: '+v.population.toLocaleString()+', Road: '+(v.road_safe?'Open':'BLOCKED');
+          }).join('\n'));
       }
 
-      // Section 3 — Rainfall
-      var rainfallLines = d.districts.map(function(dist) {
-        return dist.district + ': ' + dist.mm_48hr + 'mm (48hr) — ' + dist.risk;
-      }).join('\n');
-      html += reportSection('3. DISTRICT RAINFALL STATUS', rainfallLines);
+      html += rSection('3. District Rainfall Status',
+        d.districts.map(function(d){return d.district+': '+d.mm_48hr+'mm (48hr) — '+d.risk;}).join('\n'));
 
-      // Section 4 — Recommendations
-      var recLines = '';
-      if (d.highRisk.length > 0) {
-        recLines += '• Deploy NDRF teams immediately to ' + d.highRisk.map(function(v) { return v.name; }).join(', ') + '\n';
-      }
-      if (d.roadsBlocked.length > 0) {
-        recLines += '• ' + d.roadsBlocked.length + ' village(s) with blocked roads — arrange helicopter support\n';
-      }
-      recLines += '• Pre-position relief supplies for ' + d.atRiskPop.toLocaleString() + ' people\n';
-      recLines += '• Activate emergency control rooms in ' + (d.highRisk.length > 0 ? 'all affected' : 'high-risk') + ' districts\n';
-      recLines += '• Issue public advisories — avoid river crossings and hill travel\n';
-      recLines += '• Monitor Open-Meteo rainfall every 3 hours during active weather';
+      var rec = '';
+      if(d.highRisk.length>0) rec += '• Deploy NDRF to '+d.highRisk.map(function(v){return v.name;}).join(', ')+'\n';
+      if(d.roadsBlocked.length>0) rec += '• '+d.roadsBlocked.length+' village(s) road-blocked — arrange helicopter support\n';
+      rec += '• Pre-position relief for '+d.atRiskPop.toLocaleString()+' people\n';
+      rec += '• Activate emergency control rooms in affected districts\n';
+      rec += '• Issue public advisories — avoid river crossings and hill travel\n';
+      rec += '• Monitor rainfall every 3 hours during active weather';
+      html += rSection('4. Recommended Actions', rec);
 
-      html += reportSection('4. RECOMMENDED ACTIONS', recLines);
-
-      // Section 5 — Data sources
-      html += reportSection('5. DATA SOURCES',
-        'Rainfall: Open-Meteo API (real-time)\n' +
-        'Village Data: Umbrella SQLite Database\n' +
-        'Scoring: Weighted vulnerability formula (Population 25%, GLOF Travel Time 20%, Rainfall 20%, Road Safety 20%, Historical Events 15%)\n' +
-        'System: Umbrella Early Warning Dashboard — umbrella-dashboard.netlify.app'
-      );
+      html += rSection('5. Data Sources',
+        'Rainfall: Open-Meteo API (real-time) · Village Data: Umbrella SQLite Database\n'+
+        'Scoring: NDMA Risk Framework — Hazard (50%) + Vulnerability (30%) + Exposure (20%)\n'+
+        'System: umbrella-dashboard.netlify.app');
 
       document.getElementById('report-body').innerHTML = html;
     }
 
-    function reportSection(title, content) {
-      return '<div class="report-section">' +
-        '<div class="report-section-title">' + title + '</div>' +
-        '<div class="report-line">' +
-          content.replace(/\n/g, '<br>') +
-        '</div>' +
-      '</div>';
+    function rSection(title, content){
+      return '<div class="report-section"><div class="report-section-title">'+title+'</div>' +
+        '<div class="report-line">'+content.replace(/\n/g,'<br>')+'</div></div>';
     }
-
-    function printReport() {
-      window.print();
-    }
-
   </script>
 
 </body>
