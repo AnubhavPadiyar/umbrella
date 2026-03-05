@@ -1,6 +1,6 @@
-# Umbrella — Flask Server
-# Updated for NDMA formula — road_access replaces road_safe
-# New route: /admin/edit-village/<id>
+# Umbrella — Flask Server v2.0
+# NDMA Formula — road_access replaces road_safe
+# Auto-migrates database on startup
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -15,6 +15,50 @@ from brain import (
 
 app = Flask(__name__)
 CORS(app)
+
+
+# ── AUTO-MIGRATE DATABASE ON STARTUP ──────────────────────
+# Runs every time server starts — safe to run repeatedly
+# Adds road_access column if it doesn't exist yet
+
+def auto_migrate():
+    import sqlite3, os
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "umbrella.db")
+    conn   = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("PRAGMA table_info(villages)")
+    columns = [row[1] for row in cursor.fetchall()]
+
+    if "road_access" not in columns:
+        print("Running migration: adding road_access column...")
+        cursor.execute("ALTER TABLE villages ADD COLUMN road_access INTEGER NOT NULL DEFAULT 1")
+
+        # Set from road_safe if it exists
+        if "road_safe" in columns:
+            cursor.execute("UPDATE villages SET road_access = 1 WHERE road_safe = 0")
+            cursor.execute("UPDATE villages SET road_access = 2 WHERE road_safe = 1")
+
+        # Apply correct geographic values
+        road_map = {
+            "Kedarnath": 1, "Gangotri": 1, "Dharali": 1,
+            "Joshimath": 1, "Raini": 1, "Tapovan": 1,
+            "Govindghat": 1, "Badrinath": 1, "Mana Village": 1,
+            "Munsiyari": 2, "Pithoragarh Town": 3,
+            "Uttarkashi Town": 2, "Bhatwari": 2,
+            "Ghansali": 2, "Haridwar": 3,
+        }
+        for name, routes in road_map.items():
+            cursor.execute("UPDATE villages SET road_access = ? WHERE name = ?", (routes, name))
+
+        conn.commit()
+        print("✓ Migration complete — road_access column added")
+    else:
+        print("✓ Database schema OK — road_access exists")
+
+    conn.close()
+
+auto_migrate()
 
 
 # ── ROUTE 1 — Health Check ─────────────────────────────────
@@ -44,34 +88,31 @@ def rainfall():
 
 @app.route("/villages")
 def village_scores():
-    # Step 1 — live rainfall per district
     rainfall_by_district = {}
     for district in DISTRICTS:
         mm   = fetch_rainfall(district["lat"], district["lng"])
         risk = get_rainfall_risk(mm)
         rainfall_by_district[district["name"]] = risk
 
-    # Step 2 — assign rainfall to villages
     villages = get_villages_from_db()
     for village in villages:
         if village["district"] in rainfall_by_district:
             village["rainfall_risk"] = rainfall_by_district[village["district"]]
 
-    # Step 3 — score and return
     results = []
     for village in villages:
         score      = score_village(village)
         risk_level = get_risk_level(score)
         results.append({
-            "name":          village["name"],
-            "district":      village["district"],
-            "score":         score,
-            "risk_level":    risk_level,
-            "threat_type":   village["threat_type"],
-            "rainfall_risk": village["rainfall_risk"],
-            "population":    village["population"],
-            "travel_time":   village["travel_time"],
-            "road_access":   village["road_access"],
+            "name":             village["name"],
+            "district":         village["district"],
+            "score":            score,
+            "risk_level":       risk_level,
+            "threat_type":      village["threat_type"],
+            "rainfall_risk":    village["rainfall_risk"],
+            "population":       village["population"],
+            "travel_time":      village["travel_time"],
+            "road_access":      village["road_access"],
             "historical_event": village["historical_event"]
         })
 
@@ -192,7 +233,6 @@ def delete_village(village_id):
 if __name__ == "__main__":
     print("=" * 50)
     print("☂  Umbrella Server v2.0")
-    print("   NDMA Formula — road_access schema")
     print("=" * 50)
     import os
     port = int(os.environ.get("PORT", 5001))
