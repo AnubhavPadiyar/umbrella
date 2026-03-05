@@ -8,16 +8,15 @@
 
 | | URL |
 |---|---|
-| **🖥 Live Dashboard** | [umbrella-dashboard.netlify.app](https://umbrella-dashboard.netlify.app) |
-| **🗺 Risk Map** | [umbrella-dashboard.netlify.app/map.html](https://umbrella-dashboard.netlify.app/map.html) |
-| **🏘 Vulnerability Scorer** | [umbrella-dashboard.netlify.app/vulnerability.html](https://umbrella-dashboard.netlify.app/vulnerability.html) |
-| **⚡ Resource Recommender** | [umbrella-dashboard.netlify.app/resources.html](https://umbrella-dashboard.netlify.app/resources.html) |
-| **⚙ Admin Panel** | [umbrella-dashboard.netlify.app/admin.html](https://umbrella-dashboard.netlify.app/admin.html) |
+| **🖥 Live Dashboard** | [anubhavpadiyar.github.io/umbrella](https://anubhavpadiyar.github.io/umbrella) |
+| **🗺 Risk Map** | [anubhavpadiyar.github.io/umbrella/map.html](https://anubhavpadiyar.github.io/umbrella/map.html) |
+| **🏘 Vulnerability Scorer** | [anubhavpadiyar.github.io/umbrella/vulnerability.html](https://anubhavpadiyar.github.io/umbrella/vulnerability.html) |
+| **⚡ Resource Recommender** | [anubhavpadiyar.github.io/umbrella/resources.html](https://anubhavpadiyar.github.io/umbrella/resources.html) |
 | **🔌 Backend API** | [web-production-517aa.up.railway.app](https://web-production-517aa.up.railway.app) |
 | **📡 Rainfall API** | [web-production-517aa.up.railway.app/rainfall](https://web-production-517aa.up.railway.app/rainfall) |
 | **📊 Villages API** | [web-production-517aa.up.railway.app/villages](https://web-production-517aa.up.railway.app/villages) |
 
----
+--
 
 ## Dashboard Preview
 
