@@ -228,6 +228,115 @@ def delete_village(village_id):
     return jsonify({"status": "success", "message": f"Village {village_id} deleted"})
 
 
+# ── ROUTE 8 — Live Earthquake Data ────────────────────────
+
+@app.route("/earthquake")
+def earthquake():
+    import urllib.request, json, ssl, certifi
+
+    # USGS API — earthquakes M2.5+ within 350km of Uttarakhand centre
+    url = (
+        "https://earthquake.usgs.gov/fdsnws/event/1/query"
+        "?format=geojson"
+        "&latitude=30.5&longitude=79.0"
+        "&maxradiuskm=350"
+        "&minmagnitude=2.5"
+        "&orderby=time"
+        "&limit=20"
+    )
+
+    # Seismic zone data for our villages (static — NDMA classification)
+    village_zones = {
+        "Kedarnath":        {"zone": "V", "district": "Rudraprayag", "lat": 30.7346, "lng": 79.0669},
+        "Gangotri":         {"zone": "V", "district": "Uttarkashi",  "lat": 30.9940, "lng": 79.0770},
+        "Dharali":          {"zone": "V", "district": "Uttarkashi",  "lat": 30.9500, "lng": 78.9800},
+        "Joshimath":        {"zone": "V", "district": "Chamoli",     "lat": 30.5580, "lng": 79.5640},
+        "Raini":            {"zone": "V", "district": "Chamoli",     "lat": 30.5200, "lng": 79.7200},
+        "Tapovan":          {"zone": "V", "district": "Chamoli",     "lat": 30.4900, "lng": 79.6700},
+        "Govindghat":       {"zone": "V", "district": "Chamoli",     "lat": 30.5400, "lng": 79.6600},
+        "Badrinath":        {"zone": "V", "district": "Chamoli",     "lat": 30.7433, "lng": 79.4938},
+        "Mana Village":     {"zone": "V", "district": "Chamoli",     "lat": 30.7700, "lng": 79.5500},
+        "Munsiyari":        {"zone": "IV","district": "Pithoragarh", "lat": 30.0678, "lng": 80.2378},
+        "Pithoragarh Town": {"zone": "IV","district": "Pithoragarh", "lat": 29.5829, "lng": 80.2181},
+        "Uttarkashi Town":  {"zone": "V", "district": "Uttarkashi",  "lat": 30.7268, "lng": 78.4354},
+        "Bhatwari":         {"zone": "V", "district": "Uttarkashi",  "lat": 30.8500, "lng": 78.6000},
+        "Ghansali":         {"zone": "IV","district": "Tehri Garhwal","lat": 30.4200, "lng": 78.6500},
+        "Haridwar":         {"zone": "III","district": "Haridwar",   "lat": 29.9457, "lng": 78.1642},
+    }
+
+    try:
+        context = ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(url, context=context, timeout=10) as response:
+            data = json.loads(response.read())
+
+        quakes = []
+        for feature in data["features"]:
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+            quakes.append({
+                "magnitude": props["mag"],
+                "place":     props["place"],
+                "time":      props["time"],
+                "depth_km":  round(coords[2], 1),
+                "lng":       coords[0],
+                "lat":       coords[1],
+                "url":       props["url"]
+            })
+
+        # Find nearest village for each quake
+        import math
+        def haversine(lat1, lng1, lat2, lng2):
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlng = math.radians(lng2 - lng1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+            return round(R * 2 * math.asin(math.sqrt(a)), 1)
+
+        for q in quakes:
+            nearest, min_dist = None, 9999
+            for name, v in village_zones.items():
+                d = haversine(q["lat"], q["lng"], v["lat"], v["lng"])
+                if d < min_dist:
+                    min_dist = d
+                    nearest = name
+            q["nearest_village"] = nearest
+            q["nearest_km"] = min_dist
+
+        # Build village seismic risk list
+        villages_seismic = []
+        for name, v in village_zones.items():
+            # Find closest recent quake
+            nearest_quake = None
+            min_dist = 9999
+            for q in quakes:
+                d = haversine(v["lat"], v["lng"], q["lat"], q["lng"])
+                if d < min_dist:
+                    min_dist = d
+                    nearest_quake = q
+
+            zone_risk = {"V": "HIGH", "IV": "MEDIUM", "III": "LOW"}[v["zone"]]
+            villages_seismic.append({
+                "name":            name,
+                "district":        v["district"],
+                "zone":            v["zone"],
+                "lat":             v["lat"],
+                "lng":             v["lng"],
+                "risk_level":      zone_risk,
+                "nearest_quake_km": min_dist if nearest_quake else None,
+                "nearest_quake_mag": nearest_quake["magnitude"] if nearest_quake else None,
+            })
+
+        return jsonify({
+            "status":   "success",
+            "quakes":   quakes,
+            "villages": villages_seismic,
+            "total":    len(quakes)
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e), "quakes": [], "villages": []})
+
+
 # ── START ──────────────────────────────────────────────────
 
 if __name__ == "__main__":

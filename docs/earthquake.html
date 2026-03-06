@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Seismic Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    .page-header{background:var(--navy);padding:40px 48px 36px;border-bottom:3px solid var(--orange);display:flex;align-items:flex-end;justify-content:space-between;}
+    .page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+    .page-title{font-family:var(--serif);font-size:36px;font-weight:600;color:white;margin-bottom:8px;}
+    .page-desc{font-size:13px;color:rgba(255,255,255,0.5);}
+    .page-badge{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);}
+
+    /* Stat strip */
+    .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+    .stat-box{padding:20px 32px;border-right:1px solid var(--border);}
+    .stat-box:last-child{border-right:none;}
+    .stat-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+    .stat-value{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--navy);line-height:1;}
+    .stat-sub{font-size:11px;color:var(--muted2);margin-top:5px;}
+
+    .content{padding:32px 48px 48px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .full-width{grid-column:1/-1;}
+
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .card-header{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .card-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+    .card-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+
+    /* Quake list */
+    .quake-item{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;}
+    .quake-item:last-child{border-bottom:none;}
+    .quake-item:hover{background:var(--bg3);}
+    .mag-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);font-weight:600;font-size:14px;}
+    .mag-circle.high{background:var(--red-dim);color:var(--red);border:2px solid rgba(192,57,43,0.3);}
+    .mag-circle.medium{background:var(--orange-dim);color:var(--orange);border:2px solid rgba(211,84,0,0.3);}
+    .mag-circle.low{background:rgba(26,39,68,0.06);color:var(--muted);border:2px solid var(--border);}
+    .quake-body{flex:1;}
+    .quake-place{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+    .quake-meta{display:flex;gap:12px;flex-wrap:wrap;}
+    .quake-meta span{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+    .quake-nearest{font-size:11px;color:var(--muted);margin-top:3px;}
+
+    /* Village seismic table */
+    .seismic-table{width:100%;border-collapse:collapse;}
+    .seismic-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);}
+    .seismic-table td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;}
+    .seismic-table tr:last-child td{border-bottom:none;}
+    .seismic-table tr:hover td{background:var(--bg3);}
+
+    .zone-badge{display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;}
+    .zone-badge.V{background:var(--red-dim);color:var(--red);}
+    .zone-badge.IV{background:var(--orange-dim);color:var(--orange);}
+    .zone-badge.III{background:var(--green-dim);color:var(--green);}
+    .risk-tag{display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:600;}
+    .risk-tag.HIGH{background:var(--red-dim);color:var(--red);}
+    .risk-tag.MEDIUM{background:var(--orange-dim);color:var(--orange);}
+    .risk-tag.LOW{background:var(--green-dim);color:var(--green);}
+
+    /* Zone info card */
+    .zone-info{padding:20px;}
+    .zone-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+    .zone-row:last-child{border-bottom:none;}
+    .zone-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+    .zone-dot.V{background:var(--red);}
+    .zone-dot.IV{background:var(--orange);}
+    .zone-dot.III{background:var(--green);}
+    .zone-name{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy);width:70px;flex-shrink:0;}
+    .zone-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+    .empty-state{padding:40px;text-align:center;color:var(--muted2);font-family:var(--mono);font-size:12px;}
+
+    .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="earthquake.html" class="active">Seismic</a></li>
+      <li><a href="incidents.html">Incident Log</a></li>
+      <li><a href="methodology.html">Methodology</a></li>
+      <li><a href="report.html">Report</a></li>
+      <li><a href="admin.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Seismic Monitor · USGS Live Feed</div>
+      <div class="page-title">Earthquake Risk</div>
+      <div class="page-desc">Live seismic activity within 350km of Uttarakhand · Village zone classification</div>
+    </div>
+    <span class="page-badge" id="status-badge">⏳ Loading...</span>
+  </div>
+
+  <!-- Stat strip -->
+  <div class="stat-strip" id="stat-strip">
+    <div class="stat-box"><div class="stat-label">Recent Quakes (7d)</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">M2.5+ within 350km</div></div>
+    <div class="stat-box"><div class="stat-label">Strongest</div><div class="stat-value" id="s-max">—</div><div class="stat-sub" id="s-max-place">Loading...</div></div>
+    <div class="stat-box"><div class="stat-label">Nearest Epicenter</div><div class="stat-value" id="s-nearest">—</div><div class="stat-sub" id="s-nearest-vil">to any village</div></div>
+    <div class="stat-box"><div class="stat-label">Zone V Villages</div><div class="stat-value" id="s-zone5">—</div><div class="stat-sub">Highest seismic risk</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- Live Quakes -->
+    <div class="card full-width fade-up d1">
+      <div class="card-header">
+        <span class="card-title">Live Earthquake Feed</span>
+        <span class="card-sub" id="quake-source">Source: USGS Earthquake Hazards Program</span>
+      </div>
+      <div id="quake-list"><div class="empty-state">Loading earthquake data...</div></div>
+    </div>
+
+    <!-- Village Seismic Risk -->
+    <div class="card fade-up d2" style="grid-column:1/-1">
+      <div class="card-header">
+        <span class="card-title">Village Seismic Risk</span>
+        <span class="card-sub">NDMA Seismic Zone Classification</span>
+      </div>
+      <table class="seismic-table">
+        <thead>
+          <tr>
+            <th>Village</th>
+            <th>District</th>
+            <th>Seismic Zone</th>
+            <th>Nearest Recent Quake</th>
+            <th>Distance</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody id="village-tbody">
+          <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Zone Info -->
+    <div class="card fade-up d3">
+      <div class="card-header">
+        <span class="card-title">Seismic Zone Guide</span>
+        <span class="card-sub">Bureau of Indian Standards IS 1893</span>
+      </div>
+      <div class="zone-info">
+        <div class="zone-row">
+          <div class="zone-dot V"></div>
+          <div class="zone-name">Zone V</div>
+          <div class="zone-desc">Very High Damage Risk. Peak Ground Acceleration &gt;0.36g. Includes Chamoli, Uttarkashi, Rudraprayag. Site of 1991 Uttarkashi (M6.8) and 1999 Chamoli (M6.4) earthquakes.</div>
+        </div>
+        <div class="zone-row">
+          <div class="zone-dot IV"></div>
+          <div class="zone-name">Zone IV</div>
+          <div class="zone-desc">High Damage Risk. PGA 0.24g. Includes Pithoragarh, Tehri Garhwal. Tehri Dam sits in this zone — highest dam in Asia.</div>
+        </div>
+        <div class="zone-row">
+          <div class="zone-dot III"></div>
+          <div class="zone-name">Zone III</div>
+          <div class="zone-desc">Moderate Damage Risk. PGA 0.16g. Includes Haridwar and lower Ganga plains. Lower tectonic activity than upper Himalaya.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historical Events -->
+    <div class="card fade-up d4">
+      <div class="card-header">
+        <span class="card-title">Major Historical Earthquakes</span>
+        <span class="card-sub">Uttarakhand region · M5.5+</span>
+      </div>
+      <div class="zone-info">
+        <div class="zone-row">
+          <div class="zone-dot V"></div>
+          <div><div style="font-size:13px;font-weight:600;margin-bottom:2px">1991 Uttarkashi — M6.8</div><div style="font-size:12px;color:var(--muted)">768 deaths · 5,000+ injured · Devastated Uttarkashi and Bhatwari</div></div>
+        </div>
+        <div class="zone-row">
+          <div class="zone-dot V"></div>
+          <div><div style="font-size:13px;font-weight:600;margin-bottom:2px">1999 Chamoli — M6.4</div><div style="font-size:12px;color:var(--muted)">103 deaths · 150+ villages affected · Epicenter near Chamoli district</div></div>
+        </div>
+        <div class="zone-row">
+          <div class="zone-dot IV"></div>
+          <div><div style="font-size:13px;font-weight:600;margin-bottom:2px">1803 Garhwal — M7.5 (est.)</div><div style="font-size:12px;color:var(--muted)">Historical megaquake · Felt across north India · Kedarnath temple damaged</div></div>
+        </div>
+        <div class="zone-row">
+          <div class="zone-dot IV"></div>
+          <div><div style="font-size:13px;font-weight:600;margin-bottom:2px">2015 Nepal — M7.8</div><div style="font-size:12px;color:var(--muted)">Felt strongly in Uttarakhand · Triggered landslides in border districts</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var BACKEND = "https://web-production-517aa.up.railway.app";
+
+    function timeAgo(ms){
+      var diff = Date.now() - ms;
+      var mins = Math.floor(diff/60000);
+      if(mins<60) return mins+'m ago';
+      var hrs = Math.floor(mins/60);
+      if(hrs<24) return hrs+'h ago';
+      return Math.floor(hrs/24)+'d ago';
+    }
+
+    function magClass(m){
+      if(m>=5) return 'high';
+      if(m>=3.5) return 'medium';
+      return 'low';
+    }
+
+    fetch(BACKEND+"/earthquake")
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var badge = document.getElementById('status-badge');
+        badge.style.cssText='font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(74,222,128,0.4);color:#4ade80;background:rgba(74,222,128,0.08);';
+        badge.innerText='🟢 Live · USGS';
+
+        var quakes   = data.quakes;
+        var villages = data.villages;
+
+        // Stats
+        document.getElementById('s-total').innerText = quakes.length;
+
+        if(quakes.length>0){
+          var strongest = quakes.reduce(function(a,b){return a.magnitude>b.magnitude?a:b;});
+          document.getElementById('s-max').innerText = 'M'+strongest.magnitude;
+          document.getElementById('s-max-place').innerText = strongest.place.split(',')[0];
+
+          var nearest = quakes.reduce(function(a,b){return a.nearest_km<b.nearest_km?a:b;});
+          document.getElementById('s-nearest').innerText = nearest.nearest_km+'km';
+          document.getElementById('s-nearest-vil').innerText = 'from '+nearest.nearest_village;
+        }
+
+        var zone5 = villages.filter(function(v){return v.zone==='V';}).length;
+        document.getElementById('s-zone5').innerText = zone5;
+
+        // Quake list
+        if(quakes.length===0){
+          document.getElementById('quake-list').innerHTML='<div class="empty-state">No earthquakes M2.5+ recorded in last 7 days near Uttarakhand</div>';
+        } else {
+          var html='';
+          quakes.forEach(function(q){
+            var mc = magClass(q.magnitude);
+            html+=
+              '<div class="quake-item">'+
+                '<div class="mag-circle '+mc+'">M'+q.magnitude+'</div>'+
+                '<div class="quake-body">'+
+                  '<div class="quake-place">'+q.place+'</div>'+
+                  '<div class="quake-meta">'+
+                    '<span>🕐 '+timeAgo(q.time)+'</span>'+
+                    '<span>📍 Depth: '+q.depth_km+'km</span>'+
+                    '<span>📌 '+q.nearest_km+'km from '+q.nearest_village+'</span>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+          });
+          document.getElementById('quake-list').innerHTML=html;
+        }
+
+        // Village table
+        var html2='';
+        villages.sort(function(a,b){
+          var order={V:0,IV:1,III:2};
+          return order[a.zone]-order[b.zone];
+        });
+        villages.forEach(function(v){
+          html2+=
+            '<tr>'+
+              '<td style="font-weight:600">'+v.name+'</td>'+
+              '<td>'+v.district+'</td>'+
+              '<td><span class="zone-badge '+v.zone+'">Zone '+v.zone+'</span></td>'+
+              '<td style="font-family:var(--mono);font-size:12px">'+(v.nearest_quake_mag?'M'+v.nearest_quake_mag:'No recent data')+'</td>'+
+              '<td style="font-family:var(--mono);font-size:12px">'+(v.nearest_quake_km?v.nearest_quake_km+'km':'—')+'</td>'+
+              '<td><span class="risk-tag '+v.risk_level+'">'+v.risk_level+'</span></td>'+
+            '</tr>';
+        });
+        document.getElementById('village-tbody').innerHTML=html2;
+      })
+      .catch(function(){
+        document.getElementById('status-badge').innerText='🔴 Server Offline';
+        document.getElementById('quake-list').innerHTML='<div class="empty-state">⚠ Backend offline</div>';
+      });
+  </script>
+
+</body>
+</html>
