@@ -8,14 +8,15 @@
 
 | | URL |
 |---|---|
-| **🖥 Live Dashboard** | [umbrella-dashboard.netlify.app](https://umbrella-dashboard.netlify.app) |
-| **🗺 Risk Map** | [umbrella-dashboard.netlify.app/map.html](https://umbrella-dashboard.netlify.app/map.html) |
-| **🏘 Vulnerability Scorer** | [umbrella-dashboard.netlify.app/vulnerability.html](https://umbrella-dashboard.netlify.app/vulnerability.html) |
-| **⚡ Resource Recommender** | [umbrella-dashboard.netlify.app/resources.html](https://umbrella-dashboard.netlify.app/resources.html) |
-| **⚙ Admin Panel** | [umbrella-dashboard.netlify.app/admin.html](https://umbrella-dashboard.netlify.app/admin.html) |
+| **🖥 Live Dashboard** | [anubhavpadiyar.github.io/umbrella](https://anubhavpadiyar.github.io/umbrella) |
+| **🗺 Risk Map** | [anubhavpadiyar.github.io/umbrella/map.html](https://anubhavpadiyar.github.io/umbrella/map.html) |
+| **🏘 Vulnerability Scorer** | [anubhavpadiyar.github.io/umbrella/vulnerability.html](https://anubhavpadiyar.github.io/umbrella/vulnerability.html) |
+| **⚡ Resource Recommender** | [anubhavpadiyar.github.io/umbrella/resources.html](https://anubhavpadiyar.github.io/umbrella/resources.html) |
+| **🌍 Seismic Monitor** | [anubhavpadiyar.github.io/umbrella/earthquake.html](https://anubhavpadiyar.github.io/umbrella/earthquake.html) |
+| **🔥 Forest Fire Monitor** | [anubhavpadiyar.github.io/umbrella/fire.html](https://anubhavpadiyar.github.io/umbrella/fire.html) |
+| **📋 Incident Log** | [anubhavpadiyar.github.io/umbrella/incidents.html](https://anubhavpadiyar.github.io/umbrella/incidents.html) |
+| **📄 PDF Situation Report** | [anubhavpadiyar.github.io/umbrella/report.html](https://anubhavpadiyar.github.io/umbrella/report.html) |
 | **🔌 Backend API** | [web-production-517aa.up.railway.app](https://web-production-517aa.up.railway.app) |
-| **📡 Rainfall API** | [web-production-517aa.up.railway.app/rainfall](https://web-production-517aa.up.railway.app/rainfall) |
-| **📊 Villages API** | [web-production-517aa.up.railway.app/villages](https://web-production-517aa.up.railway.app/villages) |
 
 ---
 
@@ -31,29 +32,68 @@ Umbrella fills that gap.
 
 ## What Umbrella Does
 
-A four-screen disaster intelligence platform built for district-level emergency response in the Indian Himalayan Region.
+A full-stack multi-hazard disaster intelligence platform built for district-level emergency response in the Uttarakhand Himalayan Region. Four live data sources. Five hazard modules. One unified dashboard.
 
-### Live Hazard Risk Map
+### 🌧 Flood & GLOF Risk
 - 8 real glacial lake markers with GLOF travel times to nearest villages
 - Live flood risk zones for 6 districts — updated on every page load
 - Real 48hr cumulative rainfall from Open-Meteo API
 - IMD threshold classification: ≥115mm HIGH · 65–115mm MEDIUM · <65mm LOW
 
-### Village Vulnerability Scorer
-- 15 real Uttarakhand villages scored using a weighted formula
+### 🏘 Village Vulnerability Scorer
+- 15 real Uttarakhand villages scored using the NDMA Risk Framework
 - Scores driven by **live rainfall data** — not hardcoded values
-- Five factors: Population · GLOF Travel Time · Live Rainfall · Road Safety · Historical Event
+- Formula: Hazard (50pts) + Vulnerability (30pts) + Exposure (20pts)
 - Filter by risk level, threat type, district
 
-### Resource Recommender
+### 🌍 Seismic Monitor
+- Live earthquake feed from USGS Earthquake Hazards Program
+- M2.5+ detections within 350km of Uttarakhand — updated every few hours
+- Village seismic zone classification (Zone III / IV / V) per BIS IS 1893
+- Haversine distance from each quake epicenter to nearest village
+- Historical reference: 1991 Uttarkashi M6.8, 1999 Chamoli M6.4
+
+### 🔥 Forest Fire Monitor
+- Live active fire detections from NASA FIRMS (VIIRS SNPP satellite)
+- 375m resolution, updated every 3 hours
+- Village fire risk scored by proximity to active fires + forest cover %
+- Forest cover data from Forest Survey of India 2021
+- Interactive fire map with FRP (Fire Radiative Power) intensity
+
+### 🗺 Live Hazard Risk Map
+- 5 layer toggles: GLOF · Flood · Both · Seismic · Forest Fire
+- Seismic layer: village markers colored by zone (red=V, orange=IV, green=III)
+- Fire layer: NASA FIRMS hotspots plotted in real time
+- Flood layer: district polygons colored by live 48hr rainfall
+
+### ⚡ Resource Recommender
 - NDRF, SDRF, helicopter and hospital status tracking
 - District-level action checklists with P1/P2/P3 priority
 - WhatsApp alert generator in English and Hindi
-- One-click PDF situation report export
 
-### Admin Panel
-- Add or remove villages directly from browser
-- Data saved to SQLite database — no code changes needed
+### 📋 Incident Log
+- Manual decision logging (NDRF deployed, evacuation ordered, etc.)
+- Auto-detects risk level changes and logs them automatically
+- Timestamped feed, filterable by manual / auto entries
+
+### 📄 PDF Situation Report
+- One-click situation report generated from live data
+- Includes: risk summary, village scores table, rainfall status, recommended actions
+- Formatted for government use — downloadable as PDF
+
+### 🔬 Methodology
+- Plain language explanation for field officers
+- Technical detail for reviewers: full NDMA formula, data sources, known limitations
+- Kedarnath 2013 backtest with all 5 scoring factors documented
+
+### 📰 Live Disaster News
+- Live Uttarakhand disaster and weather news from NewsData.io
+- Floods, landslides, fires, earthquakes, snowfall — updated on every load
+
+### ⚙ Admin Panel
+- Password-protected
+- Add, edit, delete villages directly from browser
+- Auto-migrates database schema on Railway deployment
 
 ---
 
@@ -63,15 +103,15 @@ A four-screen disaster intelligence platform built for district-level emergency 
 Browser (HTML · CSS · JavaScript)
          ↕  JSON over HTTP
 Flask API Server — Railway
-         ↕                    ↕
-SQLite Database          Open-Meteo API
-(village data)           (live rainfall)
+    ↕           ↕           ↕           ↕
+SQLite DB   Open-Meteo   USGS API   NASA FIRMS
+(villages)  (rainfall)  (quakes)    (fires)
 ```
 
-**Frontend:** HTML5 · CSS3 · JavaScript · Leaflet.js — hosted on Netlify  
+**Frontend:** HTML5 · CSS3 · JavaScript · Leaflet.js — hosted on GitHub Pages  
 **Backend:** Python · Flask · Flask-CORS — hosted on Railway  
 **Database:** SQLite  
-**Data Sources:** Open-Meteo API (rainfall) · ISRO/ICIMOD coordinates (glacial lakes)
+**Data Sources:** Open-Meteo API · USGS Earthquake Hazards Program · NASA FIRMS · NewsData.io · ISRO NRSC
 
 ---
 
@@ -81,8 +121,10 @@ SQLite Database          Open-Meteo API
 |--------|--------|-------------|
 | GLOF (Glacial Lake Outburst) | ✅ Live | ISRO NRSC coordinates |
 | Monsoon Flooding | ✅ Live | Open-Meteo API |
+| Earthquake / Seismic | ✅ Live | USGS Earthquake Hazards Program |
+| Forest Fire | ✅ Live | NASA FIRMS VIIRS SNPP |
 | Avalanche | 🔄 Planned | SRTM DEM + IMD snowpack |
-| Cyclone | 🔄 Planned | INCOIS storm surge data |
+| Tehri Dam breach | 🔄 Planned | CWC reservoir levels |
 
 ---
 
@@ -94,92 +136,79 @@ Uttarkashi · Chamoli · Rudraprayag · Tehri Garhwal · Pithoragarh · Haridwar
 
 ## Running Locally
 
-### Prerequisites
-- Python 3.8+
-- pip
-
-### Setup
-
 ```bash
-# Clone the repository
 git clone https://github.com/AnubhavPadiyar/umbrella.git
 cd umbrella
-
-# Install dependencies
 pip install flask flask-cors certifi
-
-# Set up the database
 python3 setup_db.py
-
-# Start the backend server
 python3 server.py
 ```
 
-Server runs at `http://localhost:5001`
-
-Open `index.html` in your browser.
+Server runs at `http://localhost:5001`. Open `index.html` in your browser.
 
 ---
 
-## Vulnerability Scoring Formula
+## Vulnerability Scoring Formula — NDMA Framework
 
-Each village is scored 0–100 across five weighted factors:
+### Hazard (50pts — dynamic)
 
-| Factor | Weight | Scoring |
-|--------|--------|---------|
-| Population | 25% | >10k=25pts · >5k=20pts · >1k=15pts |
-| GLOF Travel Time | 20% | <20min=20pts · <40=15pts · <60=10pts |
-| Live Rainfall Risk | 20% | HIGH=20pts · MEDIUM=12pts · LOW=4pts |
-| Road Safety | 20% | Blocked=20pts · Safe=0pts |
-| Historical Event | 15% | Yes=15pts · No=0pts |
+| Factor | Max | Scoring |
+|--------|-----|---------|
+| Live Rainfall (48hr) | 30pts | ≥115mm=30 · 65–115mm=18 · <65mm=6 |
+| GLOF Travel Time | 20pts | <20min=20 · <40=15 · <60=10 · <90=5 |
+
+### Vulnerability (30pts — permanent)
+
+| Factor | Max | Scoring |
+|--------|-----|---------|
+| Road Access Routes | 15pts | 1 route=15 · 2 routes=8 · 3+ routes=0 |
+| Historical Event | 15pts | Yes=15 · No=0 |
+
+### Exposure (20pts)
+
+| Factor | Max | Scoring |
+|--------|-----|---------|
+| Population | 20pts | >10k=20 · >5k=16 · >1k=12 · >500=8 · ≤500=4 |
 
 **Risk Classification:** ≥70 = HIGH · 45–69 = MEDIUM · <45 = LOW
 
 ---
 
-## Roadmap
+## Formula Validation — Kedarnath 2013 Backtest
 
-- [ ] Real Census village coordinates (Datameet/Bhuvan)
-- [ ] ISRO glacial lake inventory integration
-- [ ] CWC river gauge data for flood forecasting
-- [ ] Avalanche risk module (DEM + snowpack)
-- [ ] SMS alert gateway
-- [ ] Mobile responsive design
-- [ ] Himachal Pradesh and Sikkim expansion
+| Factor | 2013 Conditions | Score |
+|--------|----------------|-------|
+| Live Rainfall | 185mm — HIGH (≥115mm) | 30pts |
+| GLOF Travel Time | 23 minutes from Chorabari Lake | 15pts |
+| Road Access | 1 route (trekking only) | 15pts |
+| Historical Event | Yes — prior flood history | 15pts |
+| Population | 1,200 permanent residents | 8pts |
+| **Total Score** | | **83 / 100 — HIGH ✅** |
+
+Umbrella correctly classifies Kedarnath as HIGH RISK under 2013 conditions.
+
+**Known Limitation:** Formula uses permanent population. During Char Dham season (May–June), Kedarnath hosts 40,000–50,000 pilgrims — actual population at risk is 40x higher. Seasonal multiplier planned.
 
 ---
 
-## Why This Matters
+## Roadmap
 
-The Himalayan region faces an accelerating disaster risk driven by:
-- Glacial melt expanding lake volumes (GLOF frequency up 3x since 2000)
-- Intensifying monsoon rainfall patterns
-- Rapid infrastructure development in high-risk zones
-- Growing pilgrimage and tourism populations in vulnerable valleys
-
-Existing tools give weather data. Umbrella gives **ground intelligence** — connecting weather signals to village-level vulnerability, road conditions, and response resources.
+- [ ] Seasonal population multiplier for pilgrimage towns
+- [ ] Mobile responsive design
+- [ ] CWC river gauge integration
+- [ ] Tehri Dam risk module
+- [ ] SMS/WhatsApp alert gateway
+- [ ] Himachal Pradesh expansion
+- [ ] Auto-refresh every 15 minutes
+- [ ] Avalanche module
 
 ---
 
 ## Built By
 
-**Anubhav Padiyar** — Civil Engineering, Uttarakhand  
-GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)
+**Anubhav Padiyar** — B.Tech Computer Science and Engineering
 
-Domain expertise: Himalayan terrain, drainage systems, construction vulnerability  
-Personal connection: Lived through the consequences of inadequate early warning
-
-*"The gap between a weather alert and a saved life is ground intelligence. That's what Umbrella provides."*
+GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)  
+LinkedIn: [linkedin.com/in/anubhav-padiyar-b9235237b](https://www.linkedin.com/in/anubhav-padiyar-b9235237b)
 
 ---
-
-## SDG Alignment
-
-- **SDG 13** — Climate Action (glacial melt early warning)
-- **SDG 11** — Sustainable Cities (resilient Himalayan settlements)
-- **SDG 3** — Good Health (lives saved through early warning)
-- **SDG 17** — Partnerships (open government data integration)
-
----
-
-*Umbrella is open source. Built for the people of Uttarakhand.*
