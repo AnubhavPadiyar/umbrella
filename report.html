@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Situation Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);}
+    .screen-toolbar{background:var(--navy);padding:12px 48px;display:flex;align-items:center;justify-content:space-between;}
+    .back-link{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px;}
+    .back-link:hover{color:white;}
+    .toolbar-actions{display:flex;gap:10px;align-items:center;}
+    .status-pill{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:2px;}
+    .status-pill.loading{border:1px solid rgba(211,84,0,0.4);color:#d35400;background:rgba(211,84,0,0.08);}
+    .status-pill.live{border:1px solid rgba(74,222,128,0.4);color:#4ade80;background:rgba(74,222,128,0.08);}
+    .status-pill.error{border:1px solid rgba(192,57,43,0.4);color:#f87171;background:rgba(192,57,43,0.08);}
+    .download-btn{padding:8px 20px;background:white;color:var(--navy);border:none;border-radius:3px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
+    .download-btn:hover{background:var(--bg3);}
+    .download-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .report-wrapper{max-width:800px;margin:32px auto;background:white;border:1px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+    .report-head{background:var(--navy);padding:32px 40px;display:flex;justify-content:space-between;align-items:flex-start;}
+    .report-brand{display:flex;align-items:center;gap:14px;}
+    .report-logo{width:40px;height:40px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+    .report-brand-name{font-size:18px;font-weight:700;letter-spacing:1px;margin-bottom:2px;color:white;}
+    .report-brand-sub{font-size:11px;color:rgba(255,255,255,0.5);}
+    .report-doc-title{font-family:var(--serif);font-size:20px;color:white;font-weight:600;margin-bottom:6px;text-align:right;}
+    .report-doc-meta{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.45);line-height:1.8;text-align:right;}
+    .classification-banner{padding:8px 40px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;text-align:center;}
+    .classification-banner.high{background:var(--red);color:white;}
+    .classification-banner.medium{background:var(--orange);color:white;}
+    .classification-banner.normal{background:var(--green);color:white;}
+    .report-body{padding:32px 40px;}
+    .r-section{margin-bottom:28px;}
+    .r-section-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--navy);}
+    .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .summary-box{padding:14px 16px;border-radius:3px;border:1px solid var(--border);}
+    .summary-box.s-red{background:var(--red-dim);border-color:rgba(192,57,43,0.2);}
+    .summary-box.s-orange{background:var(--orange-dim);border-color:rgba(211,84,0,0.2);}
+    .summary-box.s-green{background:var(--green-dim);border-color:rgba(30,126,74,0.15);}
+    .summary-box.s-navy{background:rgba(26,39,68,0.05);border-color:rgba(26,39,68,0.15);}
+    .s-label{font-size:9px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+    .s-value{font-family:var(--mono);font-size:22px;font-weight:500;margin-bottom:2px;}
+    .summary-box.s-red .s-value{color:var(--red);}
+    .summary-box.s-orange .s-value{color:var(--orange);}
+    .summary-box.s-green .s-value{color:var(--green);}
+    .summary-box.s-navy .s-value{color:var(--navy);}
+    .s-sub{font-size:10px;color:var(--muted2);}
+    .r-table{width:100%;border-collapse:collapse;font-size:12px;}
+    .r-table th{text-align:left;font-size:9px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);}
+    .r-table td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle;}
+    .r-table tr:nth-child(even) td{background:var(--bg3);}
+    .risk-badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:9px;font-weight:700;letter-spacing:1px;font-family:var(--mono);}
+    .risk-badge.HIGH{background:var(--red-dim);color:var(--red);}
+    .risk-badge.MEDIUM{background:var(--orange-dim);color:var(--orange);}
+    .risk-badge.LOW{background:var(--green-dim);color:var(--green);}
+    .score-bar-wrap{display:flex;align-items:center;gap:8px;}
+    .score-bar-bg{width:60px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+    .score-bar-fill{height:100%;border-radius:3px;}
+    .rs{display:inline-block;padding:2px 7px;border-radius:2px;font-size:9px;font-weight:600;font-family:var(--mono);}
+    .rs.HIGH{background:var(--red-dim);color:var(--red);}
+    .rs.MEDIUM{background:var(--orange-dim);color:var(--orange);}
+    .rs.LOW{background:var(--green-dim);color:var(--green);}
+    .action-list{list-style:none;}
+    .action-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.5;}
+    .action-item:last-child{border-bottom:none;}
+    .ap{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;flex-shrink:0;margin-top:1px;}
+    .ap.p1{background:var(--red-dim);color:var(--red);}
+    .ap.p2{background:var(--orange-dim);color:var(--orange);}
+    .ap.p3{background:var(--green-dim);color:var(--green);}
+    .report-footer{background:var(--bg3);border-top:1px solid var(--border);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;}
+    .loading-overlay{padding:64px;text-align:center;color:var(--muted2);}
+    .loading-overlay p{font-family:var(--mono);font-size:13px;margin-top:12px;}
+
+    @media print {
+      .screen-toolbar{display:none !important;}
+      body{background:white;}
+      .report-wrapper{margin:0;border:none;box-shadow:none;max-width:100%;}
+      .report-head,.classification-banner,.summary-box,.r-table th,.r-table tr:nth-child(even) td,.report-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .r-section{break-inside:avoid;}
+      @page{margin:0.5cm;size:A4;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="screen-toolbar">
+    <a class="back-link" href="index.html">← Back to Dashboard</a>
+    <div class="toolbar-actions">
+      <span class="status-pill loading" id="status-pill">⏳ Fetching live data...</span>
+      <button class="download-btn" id="download-btn" onclick="exportPDF()" disabled>⬇ Download PDF</button>
+    </div>
+  </div>
+
+  <div class="report-wrapper" id="report-wrapper">
+    <div class="loading-overlay">
+      <div style="font-size:32px">☂</div>
+      <p>Generating situation report from live data...</p>
+    </div>
+  </div>
+
+  <script>
+    var BACKEND = "https://web-production-517aa.up.railway.app";
+
+    Promise.all([
+      fetch(BACKEND+"/villages").then(function(r){return r.json();}),
+      fetch(BACKEND+"/rainfall").then(function(r){return r.json();})
+    ])
+    .then(function(res){
+      var villages  = res[0].villages;
+      var districts = res[1].districts;
+      var now       = new Date();
+      var dateStr   = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      var timeStr   = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+      var refDate   = now.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'');
+
+      var high    = villages.filter(function(v){return v.risk_level==='HIGH';});
+      var med     = villages.filter(function(v){return v.risk_level==='MEDIUM';});
+      var blocked = villages.filter(function(v){return v.road_access===1;});
+      var atRisk  = high.reduce(function(s,v){return s+v.population;},0);
+      var peakMm=0, peakDist='';
+      districts.forEach(function(d){if(d.mm_48hr>peakMm){peakMm=d.mm_48hr;peakDist=d.district;}});
+
+      var status = high.length>0?'high':med.length>2?'medium':'normal';
+      var banner = status==='high'?'CRITICAL — IMMEDIATE ACTION REQUIRED':
+                   status==='medium'?'ELEVATED ALERT — SDRF ON STANDBY':
+                   'NORMAL CONDITIONS — ROUTINE MONITORING';
+
+      var html =
+        '<div class="report-head">' +
+          '<div class="report-brand">' +
+            '<div class="report-logo">☂</div>' +
+            '<div>' +
+              '<div class="report-brand-name">UMBRELLA</div>' +
+              '<div class="report-brand-sub">Multi-Hazard Early Warning System · Uttarakhand</div>' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="report-doc-title">Situation Report</div>' +
+            '<div class="report-doc-meta">Date: '+dateStr+'<br>Time: '+timeStr+' IST<br>Ref: UMB-'+refDate+'</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="classification-banner '+status+'">'+banner+'</div>' +
+        '<div class="report-body">';
+
+      // 1. Summary
+      html +=
+        '<div class="r-section">' +
+          '<div class="r-section-title">1. Situation Summary</div>' +
+          '<div class="summary-grid">' +
+            '<div class="summary-box s-red"><div class="s-label">High Risk</div><div class="s-value">'+high.length+'</div><div class="s-sub">Villages · Score ≥70</div></div>' +
+            '<div class="summary-box s-orange"><div class="s-label">Medium Risk</div><div class="s-value">'+med.length+'</div><div class="s-sub">Villages · Score 45–69</div></div>' +
+            '<div class="summary-box s-red"><div class="s-label">Population at Risk</div><div class="s-value" style="font-size:16px;padding-top:4px">'+atRisk.toLocaleString()+'</div><div class="s-sub">High risk villages</div></div>' +
+            '<div class="summary-box s-navy"><div class="s-label">Peak Rainfall</div><div class="s-value">'+peakMm+'<span style="font-size:12px">mm</span></div><div class="s-sub">'+peakDist+'</div></div>' +
+          '</div>' +
+        '</div>';
+
+      // 2. Village scores
+      html += '<div class="r-section"><div class="r-section-title">2. Village Risk Assessment</div><table class="r-table"><thead><tr><th>#</th><th>Village</th><th>District</th><th>Threat</th><th>Population</th><th>Rainfall</th><th>Score</th><th>Level</th></tr></thead><tbody>';
+      villages.forEach(function(v,i){
+        var col=v.risk_level==='HIGH'?'#c0392b':v.risk_level==='MEDIUM'?'#d35400':'#1e7e4a';
+        html+=
+          '<tr>'+
+            '<td style="font-family:var(--mono);color:var(--muted2)">'+(i+1)+'</td>'+
+            '<td style="font-weight:600">'+v.name+'</td>'+
+            '<td>'+v.district+'</td>'+
+            '<td style="font-family:var(--mono);font-size:10px">'+v.threat_type+'</td>'+
+            '<td style="font-family:var(--mono)">'+v.population.toLocaleString()+'</td>'+
+            '<td><span class="rs '+v.rainfall_risk+'">'+v.rainfall_risk+'</span></td>'+
+            '<td><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:'+v.score+'%;background:'+col+'"></div></div><span style="font-family:var(--mono);font-size:12px;font-weight:600;color:'+col+'">'+v.score+'</span></div></td>'+
+            '<td><span class="risk-badge '+v.risk_level+'">'+v.risk_level+'</span></td>'+
+          '</tr>';
+      });
+      html += '</tbody></table></div>';
+
+      // 3. Rainfall
+      html += '<div class="r-section"><div class="r-section-title">3. District Rainfall (48hr Cumulative)</div><table class="r-table"><thead><tr><th>District</th><th>48hr Rainfall</th><th>Flood Risk</th></tr></thead><tbody>';
+      districts.forEach(function(d){
+        html+='<tr><td style="font-weight:600">'+d.district+'</td><td style="font-family:var(--mono)">'+d.mm_48hr+' mm</td><td><span class="rs '+d.risk+'">'+d.risk+'</span></td></tr>';
+      });
+      html += '</tbody></table></div>';
+
+      // 4. Actions
+      html += '<div class="r-section"><div class="r-section-title">4. Recommended Actions</div><ul class="action-list">';
+      if(high.length>0) html+='<li class="action-item"><span class="ap p1">P1</span><span>Deploy NDRF to '+high.map(function(v){return v.name;}).slice(0,3).join(', ')+(high.length>3?' +'+(high.length-3)+' more':'')+'. Initiate evacuation protocols immediately.</span></li>';
+      if(blocked.length>0) html+='<li class="action-item"><span class="ap p1">P1</span><span>'+blocked.length+' village(s) with single road access — pre-position helicopter support at Gauchar/Dehradun airstrips.</span></li>';
+      if(med.length>0) html+='<li class="action-item"><span class="ap p2">P2</span><span>SDRF on standby for '+med.length+' medium risk village(s). Monitor rainfall every 3 hours.</span></li>';
+      if(peakMm>=65) html+='<li class="action-item"><span class="ap p2">P2</span><span>'+peakDist+' recording '+peakMm+'mm — alert downstream communities, check CWC river gauges.</span></li>';
+      html+='<li class="action-item"><span class="ap p2">P2</span><span>Pre-position relief for '+atRisk.toLocaleString()+' people. Activate schools as relief camps in safe zones.</span></li>';
+      html+='<li class="action-item"><span class="ap p3">P3</span><span>Issue public advisories — avoid river crossings, hill travel after dark, areas near glacial lakes.</span></li>';
+      html += '</ul></div>';
+
+      // 5. Methodology note
+      html+='<div class="r-section"><div class="r-section-title">5. Methodology</div><p style="font-size:12px;color:var(--muted);line-height:1.7">NDMA Framework: Risk = Hazard (50pts) + Vulnerability (30pts) + Exposure (20pts). Rainfall from Open-Meteo API. IMD thresholds: ≥115mm HIGH, 65–115mm MEDIUM. Score ≥70 = HIGH, 45–69 = MEDIUM, &lt;45 = LOW.</p></div>';
+
+      html += '</div>'; // close report-body
+
+      html +=
+        '<div class="report-footer">' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--muted2)">Umbrella Early Warning System · anubhavpadiyar.github.io/umbrella<br>Data: Open-Meteo API · NDMA Risk Framework</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);text-align:right">'+dateStr+'<br>'+timeStr+' IST</div>' +
+        '</div>';
+
+      document.getElementById('report-wrapper').innerHTML = html;
+      var pill = document.getElementById('status-pill');
+      pill.className='status-pill live';
+      pill.innerText='🟢 Live · '+timeStr+' IST';
+      document.getElementById('download-btn').disabled=false;
+    })
+    .catch(function(){
+      document.getElementById('status-pill').className='status-pill error';
+      document.getElementById('status-pill').innerText='🔴 Backend offline';
+      document.getElementById('report-wrapper').innerHTML='<div class="loading-overlay"><div style="font-size:32px">⚠</div><p>Backend offline — cannot generate report</p></div>';
+    });
+
+    function exportPDF(){
+      document.title='Umbrella-SitRep-'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-');
+      window.print();
+    }
+  </script>
+</body>
+</html>
