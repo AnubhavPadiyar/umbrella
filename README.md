@@ -8,44 +8,14 @@
 
 | | URL |
 |---|---|
-| **🖥 Live Dashboard** | [anubhavpadiyar.github.io/umbrella](https://anubhavpadiyar.github.io/umbrella) |
-| **🗺 Risk Map** | [anubhavpadiyar.github.io/umbrella/map.html](https://anubhavpadiyar.github.io/umbrella/map.html) |
-| **🏘 Vulnerability Scorer** | [anubhavpadiyar.github.io/umbrella/vulnerability.html](https://anubhavpadiyar.github.io/umbrella/vulnerability.html) |
-| **⚡ Resource Recommender** | [anubhavpadiyar.github.io/umbrella/resources.html](https://anubhavpadiyar.github.io/umbrella/resources.html) |
+| **🖥 Live Dashboard** | [umbrella-dashboard.netlify.app](https://umbrella-dashboard.netlify.app) |
+| **🗺 Risk Map** | [umbrella-dashboard.netlify.app/map.html](https://umbrella-dashboard.netlify.app/map.html) |
+| **🏘 Vulnerability Scorer** | [umbrella-dashboard.netlify.app/vulnerability.html](https://umbrella-dashboard.netlify.app/vulnerability.html) |
+| **⚡ Resource Recommender** | [umbrella-dashboard.netlify.app/resources.html](https://umbrella-dashboard.netlify.app/resources.html) |
+| **⚙ Admin Panel** | [umbrella-dashboard.netlify.app/admin.html](https://umbrella-dashboard.netlify.app/admin.html) |
 | **🔌 Backend API** | [web-production-517aa.up.railway.app](https://web-production-517aa.up.railway.app) |
 | **📡 Rainfall API** | [web-production-517aa.up.railway.app/rainfall](https://web-production-517aa.up.railway.app/rainfall) |
 | **📊 Villages API** | [web-production-517aa.up.railway.app/villages](https://web-production-517aa.up.railway.app/villages) |
-
---
-
-## Dashboard Preview
-
-### Main Dashboard
-<img src="assets/dashboard-overview.png" width="900">
-
-### Risk Map
-<img src="assets/risk-map.png" width="900">
-
-### Vulnerability Scorer
-<img src="assets/vulnerability-table.png" width="900">
-
-### Resource Recommender
-<img src="assets/resource-panel.png" width="900">
-
-### Incident Log
-<img src="assets/incident-log.png" width="900">
-
-### Admin Panel
-<img src="assets/admin.png" width="900">
-
-### Incident Log
-<img src="assets/incident-log.png" width="900">
-
-### Admin Panel
-<img src="assets/admin.png" width="900">
-
-### PDF Export
-<img src="assets/pdf.png" width="900">
 
 ---
 
@@ -62,11 +32,6 @@ Umbrella fills that gap.
 ## What Umbrella Does
 
 A four-screen disaster intelligence platform built for district-level emergency response in the Indian Himalayan Region.
-### Live Incident Log *(In Development)*
-- Real-time timestamped notes during active disasters
-- Override automated recommendations with ground truth
-- Running decision log for accountability and post-disaster review
-- Exportable as official incident report
 
 ### Live Hazard Risk Map
 - 8 real glacial lake markers with GLOF travel times to nearest villages
@@ -170,40 +135,6 @@ Each village is scored 0–100 across five weighted factors:
 
 **Risk Classification:** ≥70 = HIGH · 45–69 = MEDIUM · <45 = LOW
 
-## Formula Validation — Kedarnath 2013
-
-To test whether Umbrella's scoring formula is scientifically grounded, it was backtested against the June 2013 Kedarnath disaster — the most severe Himalayan disaster in recent history.
-
-**Event:** Kedarnath Flash Flood & GLOF — June 16–17, 2013  
-**Rainfall:** ~340mm in 24 hours — Rudraprayag district  
-**Deaths:** 6,000+  
-**Cause:** Chorabari glacial lake outburst + extreme monsoon rainfall
-
-### Backtest Inputs
-
-| Factor | 2013 Conditions | Score |
-|--------|----------------|-------|
-| Population | 1,200 permanent residents | 15pts |
-| GLOF Travel Time | 23 minutes from Chorabari Lake | 15pts |
-| Rainfall Risk | 340mm — HIGH (≥115mm threshold) | 20pts |
-| Road Safety | All roads blocked | 20pts |
-| Historical Event | Yes — prior flood history | 15pts |
-| **Total Score** | | **85 / 100** |
-
-**Umbrella Classification: HIGH RISK ✅**
-
-### Result
-
-Umbrella's formula correctly classifies Kedarnath as HIGH RISK under June 2013 conditions. The 85/100 score would have triggered P1 NDRF deployment recommendations and placed Kedarnath at the top of the evacuation priority list.
-
-### Known Limitation
-
-The formula uses permanent population (1,200) rather than peak season population. During Char Dham pilgrimage season (May–June), Kedarnath hosts 40,000–50,000 pilgrims — making the actual population at risk 40x higher than the permanent figure. A seasonal population multiplier is planned for a future version.
-
-### Conclusion
-
-The weighted formula performs correctly against historical data. The primary gap identified is seasonal population data for pilgrimage towns — a known limitation documented in the roadmap.
-
 ---
 
 ## Roadmap
@@ -215,7 +146,6 @@ The weighted formula performs correctly against historical data. The primary gap
 - [ ] SMS alert gateway
 - [ ] Mobile responsive design
 - [ ] Himachal Pradesh and Sikkim expansion
-- [ ] Live Incident Log — real-time decision logging with timestamps during active disasters, override recommendations, exportable as incident report
 
 ---
 
@@ -233,11 +163,23 @@ Existing tools give weather data. Umbrella gives **ground intelligence** — con
 
 ## Built By
 
-**Anubhav Padiyar** — Sophomore,Computer Science and Engineering
-
+**Anubhav Padiyar** — Civil Engineering, Uttarakhand  
 GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)
 
-Linkedin: [linked.com/AnubhavPadiyar](https://www.linkedin.com/in/anubhav-padiyar-b9235237b?utm_source=share_via&utm_content=profile&utm_medium=member_android)
+Domain expertise: Himalayan terrain, drainage systems, construction vulnerability  
+Personal connection: Lived through the consequences of inadequate early warning
+
+*"The gap between a weather alert and a saved life is ground intelligence. That's what Umbrella provides."*
 
 ---
 
+## SDG Alignment
+
+- **SDG 13** — Climate Action (glacial melt early warning)
+- **SDG 11** — Sustainable Cities (resilient Himalayan settlements)
+- **SDG 3** — Good Health (lives saved through early warning)
+- **SDG 17** — Partnerships (open government data integration)
+
+---
+
+*Umbrella is open source. Built for the people of Uttarakhand.*
