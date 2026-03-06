@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Forest Fire Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--fire:#e67e22;--fire-dim:rgba(230,126,34,0.1);--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    .page-header{background:var(--navy);padding:40px 48px 36px;border-bottom:3px solid var(--fire);display:flex;align-items:flex-end;justify-content:space-between;}
+    .page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+    .page-title{font-family:var(--serif);font-size:36px;font-weight:600;color:white;margin-bottom:8px;}
+    .page-desc{font-size:13px;color:rgba(255,255,255,0.5);}
+    .page-badge{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);}
+
+    .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+    .stat-box{padding:20px 32px;border-right:1px solid var(--border);}
+    .stat-box:last-child{border-right:none;}
+    .stat-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+    .stat-value{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--navy);line-height:1;}
+    .stat-sub{font-size:11px;color:var(--muted2);margin-top:5px;}
+
+    .content{padding:32px 48px 48px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .full-width{grid-column:1/-1;}
+
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .card-header{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .card-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+    .card-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+
+    /* Map */
+    #fire-map{height:400px;width:100%;}
+
+    /* Fire hotspot list */
+    .fire-item{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+    .fire-item:last-child{border-bottom:none;}
+    .fire-item:hover{background:var(--bg3);}
+    .fire-dot{width:10px;height:10px;border-radius:50%;background:var(--fire);flex-shrink:0;margin-top:4px;}
+    .fire-dot.high{background:var(--red);}
+    .fire-dot.medium{background:var(--fire);}
+    .fire-body{flex:1;}
+    .fire-coords{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
+    .fire-meta{display:flex;gap:10px;flex-wrap:wrap;}
+    .fire-meta span{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+
+    /* Village table */
+    .v-table{width:100%;border-collapse:collapse;}
+    .v-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);}
+    .v-table td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;}
+    .v-table tr:last-child td{border-bottom:none;}
+    .v-table tr:hover td{background:var(--bg3);}
+
+    .risk-tag{display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:600;}
+    .risk-tag.HIGH{background:var(--red-dim);color:var(--red);}
+    .risk-tag.MEDIUM{background:var(--orange-dim);color:var(--orange);}
+    .risk-tag.LOW{background:var(--green-dim);color:var(--green);}
+
+    .forest-bar{display:flex;align-items:center;gap:8px;}
+    .forest-bar-bg{width:50px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+    .forest-bar-fill{height:100%;border-radius:3px;background:var(--green);}
+
+    .season-card{padding:20px;}
+    .season-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+    .season-row:last-child{border-bottom:none;}
+    .season-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+    .season-dot.peak{background:var(--red);}
+    .season-dot.moderate{background:var(--fire);}
+    .season-dot.low{background:var(--green);}
+    .season-name{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy);width:110px;flex-shrink:0;}
+    .season-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+    .empty-state{padding:40px;text-align:center;color:var(--muted2);font-family:var(--mono);font-size:12px;}
+
+    .popup-title{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+    .popup-row{display:flex;justify-content:space-between;gap:16px;padding:3px 0;font-size:12px;}
+    .popup-label{color:var(--muted2);}
+    .popup-val{font-weight:500;}
+
+    .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="earthquake.html">Seismic</a></li>
+      <li><a href="fire.html" class="active">Forest Fire</a></li>
+      <li><a href="incidents.html">Incident Log</a></li>
+      <li><a href="methodology.html">Methodology</a></li>
+      <li><a href="report.html">Report</a></li>
+      <li><a href="admin.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Forest Fire Monitor · NASA FIRMS Live</div>
+      <div class="page-title">Forest Fire Risk</div>
+      <div class="page-desc">Active fire detections from VIIRS satellite · Updated every 3 hours</div>
+    </div>
+    <span class="page-badge" id="status-badge">⏳ Loading...</span>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-box"><div class="stat-label">Active Fire Detections</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">Last 24 hours · Uttarakhand region</div></div>
+    <div class="stat-box"><div class="stat-label">High Risk Villages</div><div class="stat-value" id="s-high">—</div><div class="stat-sub">Fire within 20km</div></div>
+    <div class="stat-box"><div class="stat-label">Nearest Detection</div><div class="stat-value" id="s-nearest">—</div><div class="stat-sub" id="s-nearest-vil">to any village</div></div>
+    <div class="stat-box"><div class="stat-label">Peak Forest Cover</div><div class="stat-value">72%</div><div class="stat-sub">Uttarkashi district</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- Fire Map -->
+    <div class="card full-width fade-up d1">
+      <div class="card-header">
+        <span class="card-title">🔥 Active Fire Map</span>
+        <span class="card-sub" id="map-sub">Loading satellite data...</span>
+      </div>
+      <div id="fire-map"></div>
+    </div>
+
+    <!-- Village Fire Risk -->
+    <div class="card full-width fade-up d2">
+      <div class="card-header">
+        <span class="card-title">Village Fire Risk Assessment</span>
+        <span class="card-sub">Proximity to active fires + forest cover</span>
+      </div>
+      <table class="v-table">
+        <thead>
+          <tr>
+            <th>Village</th>
+            <th>District</th>
+            <th>Forest Cover</th>
+            <th>Nearest Fire</th>
+            <th>Detection Date</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody id="village-tbody">
+          <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Fire Hotspot List -->
+    <div class="card fade-up d3">
+      <div class="card-header">
+        <span class="card-title">Active Fire Hotspots</span>
+        <span class="card-sub">VIIRS SNPP · 375m resolution</span>
+      </div>
+      <div id="fire-list"><div class="empty-state">Loading fire data...</div></div>
+    </div>
+
+    <!-- Fire Season Info -->
+    <div class="card fade-up d4">
+      <div class="card-header">
+        <span class="card-title">Uttarakhand Fire Season</span>
+        <span class="card-sub">Forest Survey of India data</span>
+      </div>
+      <div class="season-card">
+        <div class="season-row">
+          <div class="season-dot peak"></div>
+          <div class="season-name">Feb — Jun</div>
+          <div class="season-desc">Peak fire season. Dry conditions, low humidity, strong westerly winds. Chir pine forests in lower Himalayas highly flammable. Most FSI fire alerts recorded in March–May.</div>
+        </div>
+        <div class="season-row">
+          <div class="season-dot moderate"></div>
+          <div class="season-name">Oct — Jan</div>
+          <div class="season-desc">Moderate risk post-monsoon. Dry deciduous forests shed leaves creating fuel load. Less severe than spring season but significant in years with weak monsoon.</div>
+        </div>
+        <div class="season-row">
+          <div class="season-dot low"></div>
+          <div class="season-name">Jul — Sep</div>
+          <div class="season-desc">Monsoon season — very low fire risk. High rainfall and humidity suppress fires. Green vegetation acts as natural firebreak across Himalayan slopes.</div>
+        </div>
+        <div class="season-row">
+          <div class="season-dot peak"></div>
+          <div class="season-name">2024 Season</div>
+          <div class="season-desc">Over 1,000 forest fire incidents recorded in Uttarakhand. Nainital, Pauri Garhwal and Almora worst affected. State declared forest fire emergency in April 2024.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var BACKEND = "https://web-production-517aa.up.railway.app";
+
+    // Init map
+    var map = L.map('fire-map').setView([30.0668, 79.0193], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(map);
+
+    fetch(BACKEND + "/fire")
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var badge = document.getElementById('status-badge');
+        badge.style.cssText = 'font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(74,222,128,0.4);color:#4ade80;background:rgba(74,222,128,0.08);';
+        badge.innerText = '🟢 Live · NASA FIRMS';
+
+        var fires    = data.fires;
+        var villages = data.villages;
+
+        // Stats
+        document.getElementById('s-total').innerText = fires.length;
+        var high = villages.filter(function(v){return v.risk_level==='HIGH';});
+        document.getElementById('s-high').innerText = high.length;
+
+        if(fires.length > 0 && villages.length > 0){
+          var nearest = villages.reduce(function(a,b){
+            return (a.nearest_fire_km||9999) < (b.nearest_fire_km||9999) ? a : b;
+          });
+          document.getElementById('s-nearest').innerText = nearest.nearest_fire_km ? nearest.nearest_fire_km+'km' : '—';
+          document.getElementById('s-nearest-vil').innerText = 'from '+nearest.name;
+        }
+
+        document.getElementById('map-sub').innerText = fires.length + ' active fire detections · VIIRS SNPP satellite';
+
+        // Plot fire hotspots on map
+        fires.forEach(function(f){
+          var frp = f.frp || 0;
+          var col = frp > 100 ? '#c0392b' : frp > 30 ? '#e67e22' : '#f39c12';
+          var r   = frp > 100 ? 9 : frp > 30 ? 7 : 5;
+          var m = L.circleMarker([f.lat, f.lng], {
+            radius: r, fillColor: col, color: '#fff', weight: 1, fillOpacity: 0.85
+          });
+          m.bindPopup(
+            '<div class="popup-title">🔥 Active Fire Detection</div>' +
+            '<div class="popup-row"><span class="popup-label">Coordinates</span><span class="popup-val">'+f.lat.toFixed(3)+', '+f.lng.toFixed(3)+'</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Fire Radiative Power</span><span class="popup-val">'+f.frp+' MW</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Detected</span><span class="popup-val">'+f.acq_date+' '+f.acq_time+'</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Confidence</span><span class="popup-val">'+f.confidence+'</span></div>'
+          );
+          m.addTo(map);
+        });
+
+        // Plot villages
+        villages.forEach(function(v){
+          var col = v.risk_level==='HIGH'?'#c0392b':v.risk_level==='MEDIUM'?'#d35400':'#1e7e4a';
+          var m = L.circleMarker([v.lat, v.lng], {
+            radius: 6, fillColor: col, color: '#fff', weight: 2, fillOpacity: 0.7
+          });
+          m.bindPopup(
+            '<div class="popup-title">🏔 '+v.name+'</div>' +
+            '<div class="popup-row"><span class="popup-label">District</span><span class="popup-val">'+v.district+'</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Forest Cover</span><span class="popup-val">'+v.forest_cover+'%</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Nearest Fire</span><span class="popup-val">'+(v.nearest_fire_km?v.nearest_fire_km+'km':'No fires nearby')+'</span></div>' +
+            '<div class="popup-row"><span class="popup-label">Fire Risk</span><span class="popup-val">'+v.risk_level+'</span></div>'
+          );
+          m.addTo(map);
+        });
+
+        // Fire list
+        if(fires.length === 0){
+          document.getElementById('fire-list').innerHTML = '<div class="empty-state">✓ No active fire detections in the last 24 hours</div>';
+        } else {
+          var html = '';
+          fires.slice(0, 15).forEach(function(f){
+            var cls = (f.frp||0)>100?'high':'medium';
+            html +=
+              '<div class="fire-item">' +
+                '<div class="fire-dot '+cls+'"></div>' +
+                '<div class="fire-body">' +
+                  '<div class="fire-coords">'+f.lat.toFixed(3)+'°N, '+f.lng.toFixed(3)+'°E</div>' +
+                  '<div class="fire-meta">' +
+                    '<span>🔥 FRP: '+f.frp+' MW</span>' +
+                    '<span>📅 '+f.acq_date+' '+f.acq_time+'</span>' +
+                    '<span>🛰 '+f.satellite+'</span>' +
+                    '<span>Confidence: '+f.confidence+'</span>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+          });
+          if(fires.length > 15) html += '<div class="empty-state" style="padding:12px">+ '+(fires.length-15)+' more detections</div>';
+          document.getElementById('fire-list').innerHTML = html;
+        }
+
+        // Village table
+        var html2 = '';
+        villages.forEach(function(v){
+          html2 +=
+            '<tr>' +
+              '<td style="font-weight:600">'+v.name+'</td>' +
+              '<td>'+v.district+'</td>' +
+              '<td>' +
+                '<div class="forest-bar">' +
+                  '<div class="forest-bar-bg"><div class="forest-bar-fill" style="width:'+v.forest_cover+'%"></div></div>' +
+                  '<span style="font-family:var(--mono);font-size:12px">'+v.forest_cover+'%</span>' +
+                '</div>' +
+              '</td>' +
+              '<td style="font-family:var(--mono);font-size:12px">'+(v.nearest_fire_km ? v.nearest_fire_km+'km' : 'No fires nearby')+'</td>' +
+              '<td style="font-family:var(--mono);font-size:11px;color:var(--muted2)">'+(v.nearest_fire_date||'—')+'</td>' +
+              '<td><span class="risk-tag '+v.risk_level+'">'+v.risk_level+'</span></td>' +
+            '</tr>';
+        });
+        document.getElementById('village-tbody').innerHTML = html2;
+      })
+      .catch(function(){
+        document.getElementById('status-badge').className = '';
+        document.getElementById('status-badge').style.cssText = 'font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(192,57,43,0.4);color:#f87171;background:rgba(192,57,43,0.08);';
+        document.getElementById('status-badge').innerText = '🔴 Server Offline';
+        document.getElementById('fire-list').innerHTML = '<div class="empty-state">⚠ Backend offline</div>';
+        document.getElementById('village-tbody').innerHTML = '<tr><td colspan="6" class="empty-state">Backend offline</td></tr>';
+      });
+  </script>
+
+</body>
+</html>

@@ -337,6 +337,120 @@ def earthquake():
         return jsonify({"status": "error", "message": str(e), "quakes": [], "villages": []})
 
 
+# ── ROUTE 9 — Forest Fire Data (NASA FIRMS) ───────────────
+
+@app.route("/fire")
+def fire():
+    import urllib.request, json, ssl, certifi, csv, io, math
+
+    FIRMS_KEY = "2823ed85154f2f822d76dcdac6bdac6d"
+
+    # VIIRS SNPP — last 24hrs, India bounding box covering Uttarakhand
+    # bbox: west,south,east,north
+    url = (
+        f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/{FIRMS_KEY}"
+        f"/VIIRS_SNPP_NRT/77.0,28.5,81.5,31.5/1"
+    )
+
+    village_coords = {
+        "Kedarnath":        (30.7346, 79.0669, "Rudraprayag"),
+        "Gangotri":         (30.9940, 79.0770, "Uttarkashi"),
+        "Dharali":          (30.9500, 78.9800, "Uttarkashi"),
+        "Joshimath":        (30.5580, 79.5640, "Chamoli"),
+        "Raini":            (30.5200, 79.7200, "Chamoli"),
+        "Tapovan":          (30.4900, 79.6700, "Chamoli"),
+        "Govindghat":       (30.5400, 79.6600, "Chamoli"),
+        "Badrinath":        (30.7433, 79.4938, "Chamoli"),
+        "Mana Village":     (30.7700, 79.5500, "Chamoli"),
+        "Munsiyari":        (30.0678, 80.2378, "Pithoragarh"),
+        "Pithoragarh Town": (29.5829, 80.2181, "Pithoragarh"),
+        "Uttarkashi Town":  (30.7268, 78.4354, "Uttarkashi"),
+        "Bhatwari":         (30.8500, 78.6000, "Uttarkashi"),
+        "Ghansali":         (30.4200, 78.6500, "Tehri Garhwal"),
+        "Haridwar":         (29.9457, 78.1642, "Haridwar"),
+    }
+
+    # Forest cover % by district (FSI 2021 report)
+    forest_cover = {
+        "Uttarkashi": 72, "Chamoli": 68, "Rudraprayag": 65,
+        "Tehri Garhwal": 55, "Pithoragarh": 58, "Haridwar": 18
+    }
+
+    def haversine(lat1, lng1, lat2, lng2):
+        R = 6371
+        dlat = math.radians(lat2 - lat1)
+        dlng = math.radians(lng2 - lng1)
+        a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+        return round(R * 2 * math.asin(math.sqrt(a)), 1)
+
+    try:
+        context = ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(url, context=context, timeout=15) as response:
+            raw = response.read().decode("utf-8")
+
+        fires = []
+        reader = csv.DictReader(io.StringIO(raw))
+        for row in reader:
+            try:
+                fires.append({
+                    "lat":        float(row["latitude"]),
+                    "lng":        float(row["longitude"]),
+                    "brightness": float(row.get("bright_ti4", row.get("brightness", 0))),
+                    "frp":        float(row.get("frp", 0)),
+                    "acq_date":   row.get("acq_date", ""),
+                    "acq_time":   row.get("acq_time", ""),
+                    "confidence": row.get("confidence", "n"),
+                    "satellite":  row.get("satellite", "VIIRS"),
+                })
+            except:
+                continue
+
+        # Find nearest fire for each village
+        villages_fire = []
+        for name, (vlat, vlng, district) in village_coords.items():
+            nearest_dist = 9999
+            nearest_fire = None
+            for f in fires:
+                d = haversine(vlat, vlng, f["lat"], f["lng"])
+                if d < nearest_dist:
+                    nearest_dist = d
+                    nearest_fire = f
+
+            fc = forest_cover.get(district, 40)
+
+            # Risk: proximity + forest cover
+            if nearest_dist < 20:   risk = "HIGH"
+            elif nearest_dist < 50: risk = "MEDIUM" if fc > 50 else "LOW"
+            elif nearest_dist < 100:risk = "LOW"     if fc < 50 else "MEDIUM"
+            else:                   risk = "LOW"
+
+            # Boost if very high forest cover
+            if fc >= 65 and nearest_dist < 80 and risk == "LOW":
+                risk = "MEDIUM"
+
+            villages_fire.append({
+                "name":           name,
+                "district":       district,
+                "forest_cover":   fc,
+                "nearest_fire_km": nearest_dist if nearest_fire else None,
+                "nearest_fire_date": nearest_fire["acq_date"] if nearest_fire else None,
+                "risk_level":     risk,
+                "lat": vlat, "lng": vlng
+            })
+
+        villages_fire.sort(key=lambda x: (0 if x["risk_level"]=="HIGH" else 1 if x["risk_level"]=="MEDIUM" else 2))
+
+        return jsonify({
+            "status":   "success",
+            "fires":    fires,
+            "villages": villages_fire,
+            "total":    len(fires)
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e), "fires": [], "villages": []})
+
+
 # ── START ──────────────────────────────────────────────────
 
 if __name__ == "__main__":

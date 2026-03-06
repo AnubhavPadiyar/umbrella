@@ -69,6 +69,7 @@
       <li><a href="vulnerability.html">Vulnerability</a></li>
       <li><a href="resources.html">Resources</a></li>
       <li><a href="earthquake.html">Seismic</a></li>
+      <li><a href="fire.html">Forest Fire</a></li>
       <li><a href="incidents.html">Incident Log</a></li>
       <li><a href="methodology.html">Methodology</a></li>
       <li><a href="report.html">Report</a></li>
@@ -88,6 +89,7 @@
         <button class="layer-btn"        id="btn-flood"   onclick="showLayer('flood')">🌧 Flood Risk</button>
         <button class="layer-btn"        id="btn-both"    onclick="showLayer('both')">⚡ Both Layers</button>
         <button class="layer-btn"        id="btn-seismic" onclick="showLayer('seismic')">🌍 Seismic</button>
+        <button class="layer-btn"        id="btn-fire"    onclick="showLayer('fire')">🔥 Forest Fire</button>
       </div>
     </div>
     <span class="data-status loading" id="data-status">⏳ Fetching live rainfall...</span>
@@ -209,15 +211,32 @@
       m.addTo(seismicLayer);
     });
 
+    var fireLayer = L.layerGroup();
+
+    // Fetch fire data and add to map layer
+    fetch("https://web-production-517aa.up.railway.app/fire")
+      .then(function(r){return r.json();})
+      .then(function(data){
+        data.fires.forEach(function(f){
+          var col = (f.frp||0)>100?'#c0392b':(f.frp||0)>30?'#e67e22':'#f39c12';
+          var m = L.circleMarker([f.lat,f.lng],{radius:7,fillColor:col,color:'#fff',weight:1,fillOpacity:0.85});
+          m.bindPopup('<b>🔥 Active Fire</b><br>FRP: '+f.frp+' MW<br>'+f.acq_date+' '+f.acq_time+'<br>Confidence: '+f.confidence);
+          m.addTo(fireLayer);
+        });
+      })
+      .catch(function(){});
+
     function showLayer(type){
       map.removeLayer(glofLayer);
       map.removeLayer(floodLayer);
       map.removeLayer(seismicLayer);
-      ['btn-glof','btn-flood','btn-both','btn-seismic'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+      map.removeLayer(fireLayer);
+      ['btn-glof','btn-flood','btn-both','btn-seismic','btn-fire'].forEach(function(id){document.getElementById(id).classList.remove('active');});
       if(type==='glof')   {glofLayer.addTo(map);document.getElementById('btn-glof').classList.add('active');}
       if(type==='flood')  {floodLayer.addTo(map);document.getElementById('btn-flood').classList.add('active');}
       if(type==='both')   {glofLayer.addTo(map);floodLayer.addTo(map);document.getElementById('btn-both').classList.add('active');}
       if(type==='seismic'){seismicLayer.addTo(map);document.getElementById('btn-seismic').classList.add('active');}
+      if(type==='fire')   {fireLayer.addTo(map);document.getElementById('btn-fire').classList.add('active');}
     }
 
     var legend=L.control({position:'bottomright'});
