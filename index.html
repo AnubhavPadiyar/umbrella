@@ -766,10 +766,13 @@
   <script>
     // Live Disaster News — NewsData.io
     var NEWS_KEY = "pub_3c4f8f5621704ac3831f4761df5b353d";
-    var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand+disaster+flood+fire+earthquake&country=in&language=en&size=6";
+    var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand&country=in&language=en&size=5";
 
-    fetch(NEWS_URL)
-      .then(function(r){return r.json();})
+    var newsController = new AbortController();
+    var newsTimeout = setTimeout(function(){ newsController.abort(); }, 8000);
+
+    fetch(NEWS_URL, {signal: newsController.signal})
+      .then(function(r){ clearTimeout(newsTimeout); return r.json(); })
       .then(function(data){
         var badge = document.getElementById('news-badge');
         if(!data.results || data.results.length===0){
@@ -796,12 +799,11 @@
               '</div>'+
             '</div>';
         });
-        // Remove last border
         document.getElementById('news-feed').innerHTML = html;
       })
       .catch(function(){
-        document.getElementById('news-badge').innerText='Offline';
-        document.getElementById('news-feed').innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);padding:8px 0;">News unavailable</div>';
+        document.getElementById('news-badge').innerText='Unavailable';
+        document.getElementById('news-feed').innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);padding:8px 0;">News unavailable — check live.ndtv.com</div>';
       });
   </script>
 
