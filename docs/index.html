@@ -661,6 +661,17 @@
   <script>
     var BACKEND = "https://web-production-517aa.up.railway.app";
 
+    // Retry fetch — handles Railway cold starts
+    function fetchWithRetry(url, retries, delay){
+      return fetch(url).catch(function(err){
+        if(retries > 0){
+          return new Promise(function(resolve){setTimeout(resolve, delay);})
+            .then(function(){return fetchWithRetry(url, retries-1, delay*1.5);});
+        }
+        throw err;
+      });
+    }
+
     var RIVERS = {
       "Uttarkashi":    "Bhagirathi, Yamuna",
       "Chamoli":       "Alaknanda, Pindar",
@@ -694,7 +705,7 @@
       }, 16);
     }
 
-    fetch(BACKEND + "/rainfall")
+    fetchWithRetry(BACKEND + "/rainfall", 4, 3000)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var districts = data.districts;
@@ -763,7 +774,7 @@
         document.getElementById('threat-desc').innerText  = 'Run: python3 server.py in Terminal';
         document.getElementById('ticker-text').innerText  = 'Connection failed — backend not responding';
       });
-  <script>
+
     // Live Disaster News — NewsData.io
     var NEWS_KEY = "pub_3c4f8f5621704ac3831f4761df5b353d";
     var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand&country=in&language=en&size=5";
