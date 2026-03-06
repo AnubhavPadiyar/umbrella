@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Incident Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    .page-header{background:var(--navy);padding:40px 48px 36px;border-bottom:3px solid var(--red);display:flex;align-items:flex-end;justify-content:space-between;}
+    .page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+    .page-title{font-family:var(--serif);font-size:36px;font-weight:600;color:white;margin-bottom:8px;}
+    .page-desc{font-size:13px;color:rgba(255,255,255,0.5);}
+
+    .content{padding:32px 48px 48px;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
+
+    /* Log Entry Form */
+    .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;position:sticky;top:76px;}
+    .form-header{padding:16px 20px;background:var(--bg3);border-bottom:1px solid var(--border);}
+    .form-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+    .form-body{padding:20px;}
+    .field{margin-bottom:14px;}
+    .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;}
+    .field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:3px;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;transition:border-color .15s;}
+    .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy);}
+    .field textarea{resize:vertical;min-height:80px;line-height:1.5;}
+    .submit-btn{width:100%;padding:11px;background:var(--navy);color:white;border:none;border-radius:3px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px;}
+    .submit-btn:hover{background:var(--navy2);}
+    .toast{display:none;margin-top:10px;padding:9px 12px;border-radius:3px;font-size:12px;font-family:var(--mono);}
+    .toast.success{background:var(--green-dim);color:var(--green);border:1px solid rgba(30,126,74,0.2);}
+    .toast.error{background:var(--red-dim);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
+
+    /* Log Feed */
+    .feed-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .feed-header{padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .feed-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+    .feed-controls{display:flex;gap:8px;}
+    .filter-btn{padding:4px 10px;border-radius:2px;border:1px solid var(--border2);background:var(--bg);color:var(--muted);font-size:11px;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+    .filter-btn.active{background:var(--navy);border-color:var(--navy);color:white;}
+    .filter-btn:hover{border-color:var(--navy);color:var(--navy);}
+
+    .log-entry{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;}
+    .log-entry:last-child{border-bottom:none;}
+    .log-entry:hover{background:var(--bg3);}
+
+    .log-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+    .log-dot.auto{background:var(--navy);}
+    .log-dot.manual{background:var(--orange);}
+    .log-dot.high{background:var(--red);}
+    .log-dot.medium{background:var(--orange);}
+    .log-dot.low{background:var(--green);}
+
+    .log-body{flex:1;}
+    .log-text{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:4px;}
+    .log-meta{display:flex;gap:12px;align-items:center;}
+    .log-time{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+    .log-tag{font-family:var(--mono);font-size:10px;font-weight:600;padding:1px 6px;border-radius:2px;}
+    .log-tag.manual{background:var(--orange-dim);color:var(--orange);}
+    .log-tag.auto{background:rgba(26,39,68,0.08);color:var(--navy);}
+    .log-tag.system{background:var(--green-dim);color:var(--green);}
+
+    .log-delete{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:2px;transition:all .15s;flex-shrink:0;}
+    .log-delete:hover{background:var(--red-dim);color:var(--red);}
+
+    .empty-state{text-align:center;padding:48px 20px;color:var(--muted2);}
+    .empty-state .icon{font-size:32px;margin-bottom:12px;}
+    .empty-state p{font-size:13px;}
+
+    .score-change{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;}
+    .score-arrow{font-size:10px;}
+
+    .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="incidents.html" class="active">Incident Log</a></li>
+      <li><a href="methodology.html">Methodology</a></li>
+      <li><a href="admin.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Operational Record · Real-time</div>
+      <div class="page-title">Incident Log</div>
+      <div class="page-desc">Manual decisions and live score change feed</div>
+    </div>
+    <span id="status-badge" style="font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);">
+      ⏳ Loading...
+    </span>
+  </div>
+
+  <div class="content">
+
+    <!-- Log Entry Form -->
+    <div class="form-card fade-up d1">
+      <div class="form-header">
+        <div class="form-title">+ Log Manual Decision</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field">
+          <label>Decision Type</label>
+          <select id="f-type">
+            <option value="NDRF Deployed">NDRF Deployed</option>
+            <option value="SDRF Deployed">SDRF Deployed</option>
+            <option value="Evacuation Ordered">Evacuation Ordered</option>
+            <option value="Road Closure">Road Closure</option>
+            <option value="Helicopter Dispatch">Helicopter Dispatch</option>
+            <option value="Relief Camp Opened">Relief Camp Opened</option>
+            <option value="All Clear Issued">All Clear Issued</option>
+            <option value="Alert Issued">Alert Issued</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Village / Location</label>
+          <select id="f-village">
+            <option value="Kedarnath">Kedarnath</option>
+            <option value="Gangotri">Gangotri</option>
+            <option value="Dharali">Dharali</option>
+            <option value="Joshimath">Joshimath</option>
+            <option value="Raini">Raini</option>
+            <option value="Tapovan">Tapovan</option>
+            <option value="Govindghat">Govindghat</option>
+            <option value="Badrinath">Badrinath</option>
+            <option value="Mana Village">Mana Village</option>
+            <option value="Munsiyari">Munsiyari</option>
+            <option value="Pithoragarh Town">Pithoragarh Town</option>
+            <option value="Uttarkashi Town">Uttarkashi Town</option>
+            <option value="Bhatwari">Bhatwari</option>
+            <option value="Ghansali">Ghansali</option>
+            <option value="Haridwar">Haridwar</option>
+            <option value="All Districts">All Districts</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Notes (optional)</label>
+          <textarea id="f-notes" placeholder="Additional details about this decision..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Officer / Source</label>
+          <input type="text" id="f-officer" placeholder="e.g. DM Chamoli, SDRF HQ">
+        </div>
+
+        <button class="submit-btn" onclick="logDecision()">Log Decision</button>
+        <div class="toast" id="toast"></div>
+
+      </div>
+    </div>
+
+    <!-- Live Feed -->
+    <div class="feed-card fade-up d2">
+      <div class="feed-header">
+        <span class="feed-title" id="feed-count">Loading log...</span>
+        <div class="feed-controls">
+          <button class="filter-btn active" onclick="filterLog('all',this)">All</button>
+          <button class="filter-btn" onclick="filterLog('manual',this)">Manual</button>
+          <button class="filter-btn" onclick="filterLog('auto',this)">Auto</button>
+          <button class="filter-btn" onclick="clearLog()">Clear All</button>
+        </div>
+      </div>
+      <div id="log-feed">
+        <div class="empty-state">
+          <div class="icon">📋</div>
+          <p>Loading incident log...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var BACKEND = "https://web-production-517aa.up.railway.app";
+    var LOG_KEY  = "umbrella_incident_log";
+    var currentFilter = 'all';
+    var lastScores = {};
+
+    // Load log from localStorage
+    function getLog(){
+      try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }
+      catch(e){ return []; }
+    }
+
+    function saveLog(log){
+      localStorage.setItem(LOG_KEY, JSON.stringify(log));
+    }
+
+    function addEntry(entry){
+      var log = getLog();
+      entry.id = Date.now();
+      entry.time = new Date().toISOString();
+      log.unshift(entry);
+      if(log.length > 200) log = log.slice(0,200);
+      saveLog(log);
+      renderFeed();
+    }
+
+    function renderFeed(){
+      var log = getLog();
+      var filtered = currentFilter==='all' ? log :
+                     log.filter(function(e){return e.source===currentFilter;});
+
+      document.getElementById('feed-count').innerText =
+        filtered.length + ' entr' + (filtered.length===1?'y':'ies') +
+        (currentFilter!=='all'?' ('+currentFilter+')':'');
+
+      if(filtered.length===0){
+        document.getElementById('log-feed').innerHTML =
+          '<div class="empty-state"><div class="icon">📋</div><p>No entries yet. Log a decision or wait for score changes.</p></div>';
+        return;
+      }
+
+      var html = '';
+      filtered.forEach(function(entry){
+        var dotClass = entry.source==='manual' ? 'manual' :
+                       entry.risk ? entry.risk.toLowerCase() : 'auto';
+        var tagClass = entry.source;
+        var tagLabel = entry.source==='manual' ? 'MANUAL' :
+                       entry.source==='system' ? 'SYSTEM' : 'AUTO';
+        var timeStr  = new Date(entry.time).toLocaleString('en-IN',{
+          day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true
+        });
+
+        html +=
+          '<div class="log-entry" id="entry-'+entry.id+'">' +
+            '<div class="log-dot '+dotClass+'"></div>' +
+            '<div class="log-body">' +
+              '<div class="log-text">'+entry.text+'</div>' +
+              '<div class="log-meta">' +
+                '<span class="log-time">'+timeStr+'</span>' +
+                '<span class="log-tag '+tagClass+'">'+tagLabel+'</span>' +
+                (entry.officer?'<span class="log-time">'+entry.officer+'</span>':'') +
+              '</div>' +
+            '</div>' +
+            (entry.source==='manual'?'<button class="log-delete" onclick="deleteEntry('+entry.id+')" title="Delete">×</button>':'') +
+          '</div>';
+      });
+
+      document.getElementById('log-feed').innerHTML = html;
+    }
+
+    function logDecision(){
+      var type    = document.getElementById('f-type').value;
+      var village = document.getElementById('f-village').value;
+      var notes   = document.getElementById('f-notes').value.trim();
+      var officer = document.getElementById('f-officer').value.trim();
+
+      var text = type + ' — ' + village;
+      if(notes) text += '. ' + notes;
+
+      addEntry({source:'manual', text:text, officer:officer||null, risk:null});
+      showToast('✓ Decision logged','success');
+      document.getElementById('f-notes').value='';
+    }
+
+    function deleteEntry(id){
+      var log = getLog().filter(function(e){return e.id!==id;});
+      saveLog(log);
+      renderFeed();
+    }
+
+    function filterLog(type, btn){
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      renderFeed();
+    }
+
+    function clearLog(){
+      if(!confirm('Clear all log entries?')) return;
+      saveLog([]);
+      renderFeed();
+    }
+
+    function showToast(msg,type){
+      var t=document.getElementById('toast');
+      t.innerText=msg;t.className='toast '+type;t.style.display='block';
+      setTimeout(function(){t.style.display='none';},2500);
+    }
+
+    // Auto-log score changes from live API
+    function checkScores(){
+      fetch(BACKEND+"/villages")
+        .then(function(r){return r.json();})
+        .then(function(data){
+          var badge = document.getElementById('status-badge');
+          badge.style.cssText='font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:2px;border:1px solid rgba(74,222,128,0.4);color:#4ade80;background:rgba(74,222,128,0.08);';
+          badge.innerText='🟢 Live · '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+
+          data.villages.forEach(function(v){
+            var prev = lastScores[v.name];
+            if(prev !== undefined && prev !== v.risk_level){
+              var arrow = v.risk_level==='HIGH'?'↑ escalated to':
+                          v.risk_level==='LOW'?'↓ de-escalated to':'→ changed to';
+              addEntry({
+                source:'auto',
+                text: v.name+' ('+v.district+') '+arrow+' '+v.risk_level+' risk — Score: '+v.score,
+                risk: v.risk_level,
+                officer: null
+              });
+            }
+            lastScores[v.name] = v.risk_level;
+          });
+
+          // First load — log current high risk villages as system entry
+          if(Object.keys(lastScores).length === data.villages.length){
+            var log = getLog();
+            var hasSystem = log.some(function(e){return e.source==='system'&&e.text.indexOf('System initialised')>=0;});
+            if(!hasSystem){
+              var high = data.villages.filter(function(v){return v.risk_level==='HIGH';});
+              addEntry({
+                source:'system',
+                text:'System initialised · '+data.villages.length+' villages loaded · '+high.length+' at HIGH risk',
+                risk:null,
+                officer:'Umbrella v2.0'
+              });
+            }
+          }
+        })
+        .catch(function(){
+          document.getElementById('status-badge').innerText='🔴 Server Offline';
+        });
+    }
+
+    // Init
+    renderFeed();
+    checkScores();
+    setInterval(checkScores, 5 * 60 * 1000); // check every 5 mins
+  </script>
+
+</body>
+</html>

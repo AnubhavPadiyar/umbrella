@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Methodology</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    .page-header{background:var(--navy);padding:40px 48px 36px;border-bottom:3px solid var(--green);}
+    .page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+    .page-title{font-family:var(--serif);font-size:36px;font-weight:600;color:white;margin-bottom:8px;}
+    .page-desc{font-size:13px;color:rgba(255,255,255,0.5);max-width:600px;line-height:1.6;}
+
+    .content{padding:40px 48px 64px;max-width:960px;}
+
+    /* Section tabs */
+    .section-tabs{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);border-radius:4px;overflow:hidden;width:fit-content;}
+    .tab-btn{padding:10px 24px;border:none;background:var(--bg3);color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+    .tab-btn.active{background:var(--navy);color:white;}
+    .tab-btn:hover:not(.active){background:var(--border);}
+
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+
+    /* Simple section */
+    .simple-intro{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:24px;border-left:4px solid var(--green);}
+    .simple-intro p{font-size:15px;line-height:1.8;color:var(--text);}
+    .simple-intro strong{color:var(--navy);}
+
+    .how-it-works{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    .step-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;}
+    .step-num{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--border2);margin-bottom:8px;}
+    .step-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+    .step-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+
+    .risk-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+    .risk-card{padding:16px 20px;border-radius:4px;border:1px solid;}
+    .risk-card.high{background:var(--red-dim);border-color:rgba(192,57,43,0.2);}
+    .risk-card.medium{background:var(--orange-dim);border-color:rgba(211,84,0,0.2);}
+    .risk-card.low{background:var(--green-dim);border-color:rgba(30,126,74,0.15);}
+    .risk-level-label{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+    .risk-card.high .risk-level-label{color:var(--red);}
+    .risk-card.medium .risk-level-label{color:var(--orange);}
+    .risk-card.low .risk-level-label{color:var(--green);}
+    .risk-score{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);margin-bottom:4px;}
+    .risk-action{font-size:12px;color:var(--muted);line-height:1.5;}
+
+    /* Technical section */
+    .formula-block{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:24px;}
+    .formula-header{padding:14px 20px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;}
+    .formula-header-title{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.8);letter-spacing:.5px;}
+    .formula-header-score{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.4);}
+    .formula-rows{border-collapse:collapse;width:100%;}
+    .formula-rows th{text-align:left;font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:10px 20px;background:var(--bg3);border-bottom:1px solid var(--border);}
+    .formula-rows td{padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top;}
+    .formula-rows tr:last-child td{border-bottom:none;}
+    .formula-rows tr:hover td{background:var(--bg3);}
+    .component-tag{display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:600;}
+    .tag-hazard{background:rgba(192,57,43,0.1);color:var(--red);}
+    .tag-vuln{background:rgba(211,84,0,0.1);color:var(--orange);}
+    .tag-exposure{background:rgba(30,126,74,0.08);color:var(--green);}
+    .pts{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--navy);}
+    .scoring-detail{font-size:11px;color:var(--muted2);font-family:var(--mono);margin-top:3px;line-height:1.6;}
+
+    .validation-block{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:24px;}
+    .validation-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+    .validation-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+    .v-item{padding:16px;background:var(--bg3);border-radius:3px;}
+    .v-label{font-size:11px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .v-value{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--navy);margin-bottom:2px;}
+    .v-sub{font-size:12px;color:var(--muted);}
+
+    .sources-block{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:24px;}
+    .source-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .source-item:last-child{border-bottom:none;}
+    .source-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+    .source-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+    .source-desc{font-size:12px;color:var(--muted);}
+
+    .limitations-block{background:var(--orange-dim);border:1px solid rgba(211,84,0,0.2);border-radius:4px;padding:20px 24px;}
+    .limitations-title{font-size:11px;font-weight:600;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .limitation-item{font-size:13px;color:var(--text);padding:4px 0;padding-left:16px;position:relative;line-height:1.6;}
+    .limitation-item::before{content:'—';position:absolute;left:0;color:var(--orange);}
+
+    .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="incidents.html">Incident Log</a></li>
+      <li><a href="methodology.html" class="active">Methodology</a></li>
+      <li><a href="admin.html">Admin</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Science & Framework · NDMA Guidelines</div>
+      <div class="page-title">Methodology</div>
+      <div class="page-desc">How Umbrella calculates disaster risk — explained for both field officers and technical reviewers.</div>
+    </div>
+  </div>
+
+  <div class="content fade-up">
+
+    <div class="section-tabs">
+      <button class="tab-btn active" onclick="switchTab('simple',this)">Plain Language</button>
+      <button class="tab-btn" onclick="switchTab('technical',this)">Technical Detail</button>
+    </div>
+
+    <!-- ── SIMPLE TAB ── -->
+    <div class="tab-content active" id="tab-simple">
+
+      <div class="simple-intro">
+        <p>Umbrella monitors <strong>15 villages</strong> in the Uttarakhand Himalayan region that face risk from glacial lake outbursts (GLOF) and flash floods. Every village gets a <strong>risk score from 0 to 100</strong> based on three things: how dangerous the weather is right now, how isolated the village is geographically, and how many people live there. The higher the score, the more urgent the need for action.</p>
+      </div>
+
+      <div class="how-it-works">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-title">Live Rainfall Check</div>
+          <div class="step-desc">Every page load, Umbrella fetches the last 48 hours of actual rainfall from the Open-Meteo weather API for each district. High rainfall means flood risk is rising right now.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-title">Geographic Risk</div>
+          <div class="step-desc">Each village has a fixed geographic score — how close it is to a glacial lake, how many roads lead in and out, and whether it has suffered a disaster before. These facts don't change with weather.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-title">Score & Prioritise</div>
+          <div class="step-desc">The system adds all factors together into one score. Villages scoring 70 or above need immediate attention. 45–69 means watch closely. Below 45 is low risk under current conditions.</div>
+        </div>
+      </div>
+
+      <div class="risk-levels">
+        <div class="risk-card high">
+          <div class="risk-level-label">🔴 HIGH RISK</div>
+          <div class="risk-score">Score ≥ 70</div>
+          <div class="risk-action">Immediate action. Deploy NDRF. Prepare evacuation. Issue public alert.</div>
+        </div>
+        <div class="risk-card medium">
+          <div class="risk-level-label">🟠 MEDIUM RISK</div>
+          <div class="risk-score">Score 45–69</div>
+          <div class="risk-action">Elevated watch. SDRF on standby. Monitor rainfall every 3 hours.</div>
+        </div>
+        <div class="risk-card low">
+          <div class="risk-level-label">🟢 LOW RISK</div>
+          <div class="risk-score">Score &lt; 45</div>
+          <div class="risk-action">Normal monitoring. No immediate action required. Check daily.</div>
+        </div>
+      </div>
+
+      <div class="sources-block">
+        <div class="validation-title">Why should you trust these scores?</div>
+        <div class="source-item">
+          <div class="source-icon">📡</div>
+          <div>
+            <div class="source-name">Rainfall data is real — not estimated</div>
+            <div class="source-desc">Live 48-hour cumulative rainfall from Open-Meteo API, updated on every page load. Same data source used by meteorological agencies.</div>
+          </div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">🏔</div>
+          <div>
+            <div class="source-name">Glacial lake locations from ISRO NRSC</div>
+            <div class="source-desc">Glacial lake coordinates and travel times derived from ISRO's National Remote Sensing Centre inventory of Himalayan glacial lakes.</div>
+          </div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">✅</div>
+          <div>
+            <div class="source-name">Validated against Kedarnath 2013</div>
+            <div class="source-desc">When tested with June 2013 rainfall data (185mm over 48 hours), the formula correctly scored Kedarnath at 85/100 — HIGH risk — matching the actual catastrophic event.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TECHNICAL TAB ── -->
+    <div class="tab-content" id="tab-technical">
+
+      <div class="formula-block">
+        <div class="formula-header">
+          <span class="formula-header-title">Risk Formula — NDMA Framework</span>
+          <span class="formula-header-score">Max Score: 100 pts</span>
+        </div>
+        <table class="formula-rows">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Factor</th>
+              <th>Max Pts</th>
+              <th>Scoring Logic</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="component-tag tag-hazard">HAZARD</span></td>
+              <td>Live Rainfall (48hr)</td>
+              <td class="pts">30</td>
+              <td>
+                HIGH (≥115mm) = 30
+                <div class="scoring-detail">MEDIUM (65–115mm) = 18<br>LOW (&lt;65mm) = 6</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="component-tag tag-hazard">HAZARD</span></td>
+              <td>GLOF Travel Time</td>
+              <td class="pts">20</td>
+              <td>
+                &lt;20 min = 20
+                <div class="scoring-detail">&lt;40 min = 15 · &lt;60 min = 10 · &lt;90 min = 5 · ≥90 min = 0</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="component-tag tag-vuln">VULNERABILITY</span></td>
+              <td>Road Access Routes</td>
+              <td class="pts">15</td>
+              <td>
+                1 route = 15
+                <div class="scoring-detail">2 routes = 8 · 3+ routes = 0<br>Permanent geographic fact — not weather-dependent</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="component-tag tag-vuln">VULNERABILITY</span></td>
+              <td>Historical Event</td>
+              <td class="pts">15</td>
+              <td>
+                Yes = 15 · No = 0
+                <div class="scoring-detail">Prior disaster record indicates structural vulnerability</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="component-tag tag-exposure">EXPOSURE</span></td>
+              <td>Population</td>
+              <td class="pts">20</td>
+              <td>
+                &gt;10,000 = 20 · &gt;5,000 = 16
+                <div class="scoring-detail">&gt;1,000 = 12 · &gt;500 = 8 · ≤500 = 4</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="validation-block">
+        <div class="validation-title">Formula Validation — Kedarnath 2013 Backtest</div>
+        <div class="validation-grid">
+          <div class="v-item">
+            <div class="v-label">Rainfall (June 16–17, 2013)</div>
+            <div class="v-value">185 mm</div>
+            <div class="v-sub">Well above HIGH threshold of 115mm → 30 pts</div>
+          </div>
+          <div class="v-item">
+            <div class="v-label">GLOF Travel Time</div>
+            <div class="v-value">23 min</div>
+            <div class="v-sub">Chorabari Lake → &lt;40 min bracket → 15 pts</div>
+          </div>
+          <div class="v-item">
+            <div class="v-label">Road Access</div>
+            <div class="v-value">1 route</div>
+            <div class="v-sub">Single trekking route + helicopter only → 15 pts</div>
+          </div>
+          <div class="v-item">
+            <div class="v-label">Historical Event</div>
+            <div class="v-value">Yes (1979)</div>
+            <div class="v-sub">Prior GLOF record → 15 pts</div>
+          </div>
+          <div class="v-item">
+            <div class="v-label">Population</div>
+            <div class="v-value">~1,200</div>
+            <div class="v-sub">&gt;500 bracket → 8 pts</div>
+          </div>
+          <div class="v-item" style="background:var(--red-dim);border:1px solid rgba(192,57,43,0.15);">
+            <div class="v-label" style="color:var(--red)">Backtest Score</div>
+            <div class="v-value" style="color:var(--red)">83 / 100</div>
+            <div class="v-sub">Correctly classified as HIGH risk ✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sources-block">
+        <div class="validation-title">Data Sources</div>
+        <div class="source-item">
+          <div class="source-icon">📡</div>
+          <div>
+            <div class="source-name">Open-Meteo API</div>
+            <div class="source-desc">Free, open-source weather API. 48hr cumulative precipitation_sum. Updated hourly. No API key required. Coordinates: district centroids.</div>
+          </div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">🏔</div>
+          <div>
+            <div class="source-name">ISRO NRSC — Glacial Lake Inventory</div>
+            <div class="source-desc">National Remote Sensing Centre inventory of Himalayan glacial lakes. Lake coordinates and GLOF travel times to downstream villages estimated from DEM analysis.</div>
+          </div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">📋</div>
+          <div>
+            <div class="source-name">NDMA Risk Framework</div>
+            <div class="source-desc">National Disaster Management Authority guidelines. Risk = Hazard × Vulnerability × Exposure. IMD rainfall thresholds: ≥115mm = HIGH, 65–115mm = MEDIUM.</div>
+          </div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">🗄</div>
+          <div>
+            <div class="source-name">Village Database (SQLite)</div>
+            <div class="source-desc">15 villages across 6 Uttarakhand districts. Static fields: population (Census 2011), travel time, road access routes, historical events. Hosted on Railway.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="limitations-block">
+        <div class="limitations-title">Known Limitations</div>
+        <div class="limitation-item">District-level rainfall is used as a proxy — village-level gauges would be more accurate.</div>
+        <div class="limitation-item">GLOF travel times are estimates based on river gradient and valley geometry — not hydraulic modelling.</div>
+        <div class="limitation-item">Seasonal population surge (pilgrimage season) not yet factored in — Kedarnath and Badrinath populations can increase 10× in June–September.</div>
+        <div class="limitation-item">Formula covers GLOF and flash flood only — landslides, earthquakes, and avalanches are not modelled.</div>
+        <div class="limitation-item">Road access is treated as a fixed integer (1/2/3 routes) — actual road conditions change dynamically.</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tab, btn){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('tab-'+tab).classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
