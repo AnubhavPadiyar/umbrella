@@ -73,6 +73,16 @@
     .bool-n{color:var(--red);font-size:12px;font-weight:600;}
     .delete-btn{padding:5px 12px;background:var(--red-dim);color:var(--red);border:1px solid rgba(192,57,43,0.2);border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--mono);transition:all .15s;}
     .delete-btn:hover{background:var(--red);color:white;}
+    .edit-btn{padding:5px 12px;background:rgba(26,39,68,0.08);color:var(--navy);border:1px solid rgba(26,39,68,0.2);border-radius:2px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--mono);transition:all .15s;}
+    .edit-btn:hover{background:var(--navy);color:white;}
+    .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--bg2);border:1px solid var(--border);border-radius:4px;width:420px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+    .modal-header{padding:16px 20px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:13px;font-weight:600;color:white;letter-spacing:.5px;}
+    .modal-close{color:rgba(255,255,255,0.5);background:none;border:none;font-size:18px;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:white;}
+    .modal-body{padding:20px;}
     .fade-up{opacity:0;transform:translateY(8px);animation:fu .4s ease forwards;}
     @keyframes fu{to{opacity:1;transform:translateY(0);}}
     .d1{animation-delay:.05s}.d2{animation-delay:.1s}
@@ -109,7 +119,7 @@
   </div>
 
   <div class="admin-note">
-    ⚠ Changes affect live data immediately · Road Safe field will be replaced by Road Access Routes in next formula update
+    ⚠ Changes affect live data immediately · Formula: NDMA framework v2.0 — road_access replaces road_safe
   </div>
 
   <div class="content">
@@ -158,12 +168,17 @@
         </div>
 
         <div class="field">
+          <label>Road Access Routes</label>
+          <select id="f-road">
+            <option value="1">1 route — single road (highest vulnerability)</option>
+            <option value="2">2 routes — partial access</option>
+            <option value="3">3+ routes — multiple alternatives</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label>Additional Factors</label>
           <div class="checkbox-group">
-            <label class="checkbox-item">
-              <input type="checkbox" id="f-road">
-              <span>Road is currently safe</span>
-            </label>
             <label class="checkbox-item">
               <input type="checkbox" id="f-history">
               <span>Historical disaster event</span>
@@ -189,9 +204,9 @@
             <th>Village</th>
             <th>Threat</th>
             <th>Population</th>
-            <th>Road Safe</th>
+            <th>Road Access</th>
             <th>History</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="village-tbody">
@@ -226,9 +241,12 @@
                 '<td><div class="v-name">'+row.name+'</div><div class="v-dist">'+row.district+'</div></td>' +
                 '<td><span class="threat-tag '+tc+'">'+tl+'</span></td>' +
                 '<td style="font-family:var(--mono);font-size:13px">'+row.population.toLocaleString()+'</td>' +
-                '<td><span class="'+(row.road_safe?'bool-y':'bool-n')+'">'+(row.road_safe?'✓ Yes':'✗ No')+'</span></td>' +
+                '<td style="font-family:var(--mono);font-size:12px">'+(row.road_access===1?'<span style="color:var(--red)">1 route</span>':row.road_access===2?'<span style="color:var(--orange)">2 routes</span>':'<span style="color:var(--green)">3+ routes</span>')+'</td>' +
                 '<td><span class="'+(row.historical_event?'bool-y':'bool-n')+'">'+(row.historical_event?'✓ Yes':'✗ No')+'</span></td>' +
-                '<td><button class="delete-btn" onclick="deleteVillage('+row.id+',\''+row.name+'\')">Delete</button></td>' +
+                '<td style="display:flex;gap:6px;">' +
+                  '<button class="edit-btn" onclick="openEdit('+JSON.stringify(row)+')">Edit</button>' +
+                  '<button class="delete-btn" onclick="deleteVillage('+row.id+',\''+row.name+'\')">Delete</button>' +
+                '</td>' +
               '</tr>';
           });
           document.getElementById('village-tbody').innerHTML = html;
@@ -244,8 +262,7 @@
       var name = document.getElementById('f-name').value.trim();
       var pop  = parseInt(document.getElementById('f-population').value);
       var trav = parseInt(document.getElementById('f-travel').value);
-      if(!name||!pop||!trav){showToast('Please fill in all required fields','error');return;}
-
+      if(!name||!pop||!trav){showToast('Please fill in all required fields','error','toast');return;}
       fetch(BACKEND+"/admin/add-village",{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -255,38 +272,146 @@
           population:pop,
           travel_time:trav,
           threat_type:document.getElementById('f-threat').value,
-          road_safe:document.getElementById('f-road').checked,
-          historical_event:document.getElementById('f-history').checked
+          road_access:parseInt(document.getElementById('f-road').value),
+          historical_event:document.getElementById('f-history').checked?1:0
         })
       })
       .then(function(r){return r.json();})
       .then(function(){
-        showToast('✓ '+name+' added to database','success');
+        showToast('✓ '+name+' added','success','toast');
         document.getElementById('f-name').value='';
         document.getElementById('f-population').value='';
         document.getElementById('f-travel').value='';
-        document.getElementById('f-road').checked=false;
+        document.getElementById('f-road').value='1';
         document.getElementById('f-history').checked=false;
         loadVillages();
       })
-      .catch(function(){showToast('⚠ Failed to add village','error');});
+      .catch(function(){showToast('⚠ Failed to add','error','toast');});
+    }
+
+    function openEdit(row){
+      document.getElementById('e-id').value         = row.id;
+      document.getElementById('e-name').value       = row.name;
+      document.getElementById('e-district').value   = row.district;
+      document.getElementById('e-population').value = row.population;
+      document.getElementById('e-travel').value     = row.travel_time;
+      document.getElementById('e-threat').value     = row.threat_type;
+      document.getElementById('e-road').value       = row.road_access;
+      document.getElementById('e-history').checked  = row.historical_event;
+      document.getElementById('edit-modal').classList.add('open');
+    }
+
+    function closeEdit(){
+      document.getElementById('edit-modal').classList.remove('open');
+    }
+
+    function saveEdit(){
+      var id   = document.getElementById('e-id').value;
+      var name = document.getElementById('e-name').value.trim();
+      var pop  = parseInt(document.getElementById('e-population').value);
+      var trav = parseInt(document.getElementById('e-travel').value);
+      if(!name||!pop||!trav){showToast('Please fill in all fields','error','edit-toast');return;}
+      fetch(BACKEND+"/admin/edit-village/"+id,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          name:name,
+          district:document.getElementById('e-district').value,
+          population:pop,
+          travel_time:trav,
+          threat_type:document.getElementById('e-threat').value,
+          road_access:parseInt(document.getElementById('e-road').value),
+          historical_event:document.getElementById('e-history').checked?1:0
+        })
+      })
+      .then(function(r){return r.json();})
+      .then(function(){
+        showToast('✓ '+name+' updated','success','edit-toast');
+        setTimeout(function(){closeEdit();loadVillages();},1000);
+      })
+      .catch(function(){showToast('⚠ Failed to update','error','edit-toast');});
     }
 
     function deleteVillage(id,name){
       if(!confirm('Delete '+name+' from the database?'))return;
       fetch(BACKEND+"/admin/delete-village/"+id,{method:'DELETE'})
         .then(function(){loadVillages();})
-        .catch(function(){showToast('⚠ Failed to delete','error');});
+        .catch(function(){showToast('⚠ Failed to delete','error','toast');});
     }
 
-    function showToast(msg,type){
-      var t=document.getElementById('toast');
+    function showToast(msg,type,id){
+      var t=document.getElementById(id);
       t.innerText=msg;t.className='toast '+type;t.style.display='block';
       setTimeout(function(){t.style.display='none';},3000);
     }
 
     loadVillages();
   </script>
+
+  <!-- Edit Village Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Edit Village</span>
+        <button class="modal-close" onclick="closeEdit()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="e-id">
+        <div class="field">
+          <label>Village Name</label>
+          <input type="text" id="e-name">
+        </div>
+        <div class="field">
+          <label>District</label>
+          <select id="e-district">
+            <option value="Uttarkashi">Uttarkashi</option>
+            <option value="Chamoli">Chamoli</option>
+            <option value="Rudraprayag">Rudraprayag</option>
+            <option value="Tehri Garhwal">Tehri Garhwal</option>
+            <option value="Pithoragarh">Pithoragarh</option>
+            <option value="Haridwar">Haridwar</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Population</label>
+            <input type="number" id="e-population">
+          </div>
+          <div class="field">
+            <label>GLOF Travel (min)</label>
+            <input type="number" id="e-travel">
+          </div>
+        </div>
+        <div class="field">
+          <label>Threat Type</label>
+          <select id="e-threat">
+            <option value="BOTH">GLOF + Flood</option>
+            <option value="GLOF">GLOF Only</option>
+            <option value="FLOOD">Flood Only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Road Access Routes</label>
+          <select id="e-road">
+            <option value="1">1 route — single road</option>
+            <option value="2">2 routes — partial access</option>
+            <option value="3">3+ routes — multiple alternatives</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Historical Event</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item">
+              <input type="checkbox" id="e-history">
+              <span>Historical disaster event</span>
+            </label>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="saveEdit()">Save Changes</button>
+        <div class="toast" id="edit-toast"></div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
