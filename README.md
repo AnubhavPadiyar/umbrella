@@ -236,6 +236,7 @@ Existing tools give weather data. Umbrella gives **ground intelligence** — con
 **Anubhav Padiyar** — Sophomore,Computer Science and Engineering
 
 GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)
+
 Linkedin: [linked.com/AnubhavPadiyar](https://www.linkedin.com/in/anubhav-padiyar-b9235237b?utm_source=share_via&utm_content=profile&utm_medium=member_android)
 
 ---
