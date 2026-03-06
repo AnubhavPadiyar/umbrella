@@ -777,7 +777,7 @@
 
     // Live Disaster News — NewsData.io
     var NEWS_KEY = "pub_3c4f8f5621704ac3831f4761df5b353d";
-    var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand&country=in&language=en&size=5";
+    var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand+flood+OR+Uttarakhand+landslide+OR+Uttarakhand+fire+OR+Uttarakhand+earthquake+OR+Uttarakhand+disaster+OR+Uttarakhand+snowfall+OR+Uttarakhand+weather+OR+Uttarakhand+rain+OR+Uttarakhand+temperature&country=in&language=en&size=6";
 
     var newsController = new AbortController();
     var newsTimeout = setTimeout(function(){ newsController.abort(); }, 8000);
