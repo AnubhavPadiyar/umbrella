@@ -20,6 +20,8 @@
 
 ## Dashboard Preview
 
+## Dashboard Preview
+
 ### Main Dashboard
 <img src="assets/dashboard-overview.png" width="900">
 
@@ -31,6 +33,15 @@
 
 ### Resource Recommender
 <img src="assets/resource-panel.png" width="900">
+
+### Incident Log
+<img src="assets/incident-log.png" width="900">
+
+### Admin Panel
+<img src="assets/admin.png" width="900">
+
+### PDF Export
+<img src="assets/pdf.png" width="900">
 
 ---
 
