@@ -23,16 +23,7 @@
 ## Dashboard Preview
 
 ### Main Dashboard
-<img src="assets/dashboard-overview.png" width="900">
 
-### Risk Map
-<img src="assets/risk-map.png" width="900">
-
-### Vulnerability Scorer
-<img src="assets/vulnerability-table.png" width="900">
-
-### Resource Recommender
-<img src="assets/resource-panel.png" width="900">
 
 ### Incident Log
 <img src="assets/incident-log.png" width="900">
