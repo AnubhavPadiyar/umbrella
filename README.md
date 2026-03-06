@@ -20,8 +20,6 @@
 
 ## Dashboard Preview
 
-## Dashboard Preview
-
 ### Main Dashboard
 <img src="assets/dashboard-overview.png" width="900">
 
