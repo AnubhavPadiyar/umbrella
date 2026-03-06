@@ -38,10 +38,6 @@
 ### Admin Panel
 <img src="assets/admin.png" width="900">
 
-### PDF Export
-<img src="assets/pdf.png" width="900">
-
-
 ### Incident Log
 <img src="assets/incident-log.png" width="900">
 
