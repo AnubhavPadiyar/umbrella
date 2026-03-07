@@ -10,6 +10,8 @@ from brain import (
     score_village,
     get_risk_level,
     get_villages_from_db,
+    effective_population,
+    is_pilgrimage_season,
     DISTRICTS
 )
 
@@ -55,6 +57,19 @@ def auto_migrate():
         print("✓ Migration complete — road_access column added")
     else:
         print("✓ Database schema OK — road_access exists")
+
+    # Add pilgrimage column if missing
+    if "pilgrimage" not in columns:
+        print("Running migration: adding pilgrimage column...")
+        cursor.execute("ALTER TABLE villages ADD COLUMN pilgrimage INTEGER NOT NULL DEFAULT 0")
+        # Mark Char Dham pilgrimage villages
+        pilgrimage_villages = ["Kedarnath", "Badrinath", "Gangotri", "Govindghat", "Tapovan", "Mana Village"]
+        for name in pilgrimage_villages:
+            cursor.execute("UPDATE villages SET pilgrimage = 1 WHERE name = ?", (name,))
+        conn.commit()
+        print("✓ Migration complete — pilgrimage column added")
+    else:
+        print("✓ Database schema OK — pilgrimage exists")
 
     conn.close()
 
@@ -103,6 +118,7 @@ def village_scores():
     for village in villages:
         score      = score_village(village)
         risk_level = get_risk_level(score)
+        eff_pop    = effective_population(village["population"], village.get("pilgrimage", False))
         results.append({
             "name":             village["name"],
             "district":         village["district"],
@@ -111,6 +127,9 @@ def village_scores():
             "threat_type":      village["threat_type"],
             "rainfall_risk":    village["rainfall_risk"],
             "population":       village["population"],
+            "effective_population": eff_pop,
+            "pilgrimage":       village.get("pilgrimage", False),
+            "pilgrimage_season": is_pilgrimage_season(),
             "travel_time":      village["travel_time"],
             "road_access":      village["road_access"],
             "historical_event": village["historical_event"]

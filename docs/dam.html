@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — Dam Risk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root{
+      --bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--bg4:#e6e2d8;
+      --navy:#1a2744;--navy2:#243358;
+      --red:#c0392b;--red-dim:rgba(192,57,43,0.08);--red-border:rgba(192,57,43,0.2);
+      --orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--orange-border:rgba(211,84,0,0.2);
+      --green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--green-border:rgba(30,126,74,0.2);
+      --blue:#1a6b9e;--blue-dim:rgba(26,107,158,0.08);
+      --border:#ddd9ce;--border2:#c8c3b5;
+      --text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;
+      --serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+    /* NAV */
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    /* HERO */
+    .hero{background:var(--navy);padding:48px 48px 44px;border-bottom:3px solid var(--orange);}
+    .hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:14px;}
+    .hero-title{font-size:36px;font-weight:700;color:white;margin-bottom:8px;line-height:1.2;}
+    .hero-sub{font-size:14px;color:rgba(255,255,255,0.5);max-width:600px;line-height:1.7;}
+    .hero-stats{display:flex;gap:32px;margin-top:28px;}
+    .hero-stat{border-left:2px solid rgba(255,255,255,0.1);padding-left:16px;}
+    .hero-stat-val{font-family:var(--mono);font-size:22px;font-weight:500;color:white;}
+    .hero-stat-label{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;}
+
+    /* WARNING BANNER */
+    .warning-banner{background:var(--orange-dim);border-bottom:1px solid var(--orange-border);padding:10px 48px;display:flex;align-items:center;gap:10px;}
+    .warning-banner span{font-family:var(--mono);font-size:11px;color:var(--orange);}
+
+    /* LAYOUT */
+    .page{max-width:1280px;margin:0 auto;padding:32px 48px 80px;}
+    .two-col{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+
+    /* SECTION LABEL */
+    .section-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    /* DAM CARDS */
+    .dam-grid{display:flex;flex-direction:column;gap:16px;margin-bottom:32px;}
+    .dam-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .2s;}
+    .dam-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+    .dam-card.selected{border-color:var(--navy);box-shadow:0 0 0 2px rgba(26,39,68,0.15);}
+    .dam-card-header{padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+    .dam-card-left{flex:1;}
+    .dam-name{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+    .dam-meta{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+    .dam-risk-badge{padding:4px 12px;border-radius:3px;font-family:var(--mono);font-size:11px;font-weight:600;flex-shrink:0;}
+    .dam-risk-badge.high{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+    .dam-risk-badge.medium{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange-border);}
+    .dam-risk-badge.low{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+    .dam-card-body{padding:0 20px 18px;border-top:1px solid var(--border);margin-top:4px;padding-top:14px;}
+    .dam-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+    .dam-stat{background:var(--bg3);border-radius:3px;padding:10px 12px;}
+    .dam-stat-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--navy);}
+    .dam-stat-label{font-size:10px;color:var(--muted2);margin-top:2px;}
+
+    /* DOWNSTREAM TABLE */
+    .downstream-title{font-size:11px;font-weight:600;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+    .downstream-table{width:100%;border-collapse:collapse;}
+    .downstream-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);}
+    .downstream-table td{padding:8px 10px;border:1px solid var(--border);font-size:12px;}
+    .downstream-table tr:hover td{background:var(--bg3);}
+    .impact-high{color:var(--red);font-weight:600;}
+    .impact-medium{color:var(--orange);font-weight:600;}
+    .impact-low{color:var(--green);font-weight:600;}
+    .time-val{font-family:var(--mono);font-size:11px;}
+    .pop-val{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+
+    /* RISK FACTORS */
+    .risk-factors{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+    .risk-factor{padding:3px 10px;border-radius:2px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);}
+    .risk-factor.warn{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+    .risk-factor.ok{background:var(--green-dim);border-color:var(--green-border);color:var(--green);}
+
+    /* RIGHT PANEL */
+    .panel-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px;}
+    .panel-title{font-size:11px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3);}
+    #dam-map{height:280px;width:100%;}
+
+    /* SEISMIC ZONE TABLE */
+    .zone-table{width:100%;border-collapse:collapse;}
+    .zone-table td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;}
+    .zone-table td:first-child{font-weight:600;color:var(--navy);}
+    .zone-v{color:var(--red);font-family:var(--mono);font-size:11px;font-weight:600;}
+    .zone-iv{color:var(--orange);font-family:var(--mono);font-size:11px;font-weight:600;}
+
+    /* DISCLAIMER */
+    .disclaimer{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-top:24px;}
+    .disclaimer p{font-size:11px;color:var(--muted2);line-height:1.7;}
+
+    .fade-up{opacity:0;transform:translateY(10px);animation:fu .4s ease forwards;}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="index.html">
+    <div class="logo-mark">☂</div>
+    <div>
+      <div class="logo-text">Umbrella</div>
+      <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="map.html">Risk Map</a></li>
+    <li><a href="vulnerability.html">Vulnerability</a></li>
+    <li><a href="resources.html">Resources</a></li>
+    <li><a href="earthquake.html">Seismic</a></li>
+    <li><a href="fire.html">Forest Fire</a></li>
+    <li><a href="dam.html" class="active">Dam Risk</a></li>
+    <li><a href="incidents.html">Incident Log</a></li>
+    <li><a href="report.html">Report</a></li>
+    <li><a href="admin.html">Admin</a></li>
+    <li><a href="about.html" style="color:rgba(255,255,255,0.4);">About</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Dam Risk Intelligence</div>
+  <div class="hero-title">Reservoir & Dam Failure Risk</div>
+  <div class="hero-sub">Structural risk assessment for major dams in the Uttarakhand Himalayan Region. Downstream impact zones, estimated flood travel times, and seismic exposure for 5 high-risk reservoirs.</div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">5</div>
+      <div class="hero-stat-label">Dams monitored</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">260m</div>
+      <div class="hero-stat-label">Tehri — tallest dam in Asia</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">2</div>
+      <div class="hero-stat-label">Dams in Seismic Zone V</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">~4.2M</div>
+      <div class="hero-stat-label">Population in downstream zones</div>
+    </div>
+  </div>
+</div>
+
+<div class="warning-banner">
+  <span>⚠ STATIC DATA — Reservoir levels shown are design capacity. Live CWC integration planned for future release.</span>
+</div>
+
+<div class="page">
+  <div class="two-col">
+
+    <!-- LEFT: Dam Cards -->
+    <div>
+      <div class="section-label fade-up d1">Dam Risk Assessment</div>
+      <div class="dam-grid" id="dam-grid"></div>
+
+      <div class="disclaimer fade-up">
+        <p><strong>Data Sources:</strong> Dam heights and capacities from Central Water Commission (CWC) India. Seismic zones per BIS IS 1893:2016. Downstream population estimates from Census 2011. Flood travel times are modelled estimates based on dam height, reservoir volume, and river gradient — not official CWC flood modelling.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div>
+      <div class="panel-card fade-up d2">
+        <div class="panel-title">Dam Locations</div>
+        <div id="dam-map"></div>
+      </div>
+
+      <div class="panel-card fade-up d3">
+        <div class="panel-title">Seismic Zone Reference</div>
+        <table class="zone-table">
+          <tr><td>Tehri Dam</td><td><span class="zone-iv">Zone IV</span></td></tr>
+          <tr><td>Koteshwar Dam</td><td><span class="zone-iv">Zone IV</span></td></tr>
+          <tr><td>Srinagar Dam</td><td><span class="zone-iv">Zone IV</span></td></tr>
+          <tr><td>Vishnu Prayag Dam</td><td><span class="zone-v">Zone V</span></td></tr>
+          <tr><td>Maneri Bhali Dam</td><td><span class="zone-v">Zone V</span></td></tr>
+        </table>
+      </div>
+
+      <div class="panel-card fade-up d4">
+        <div class="panel-title">Risk Classification</div>
+        <table class="zone-table">
+          <tr><td style="color:var(--red);font-weight:700;">HIGH</td><td style="font-size:11px;color:var(--muted2);">Zone V + large reservoir + old infrastructure or high downstream population density</td></tr>
+          <tr><td style="color:var(--orange);font-weight:700;">MEDIUM</td><td style="font-size:11px;color:var(--muted2);">Zone IV + large reservoir or Zone V + smaller reservoir</td></tr>
+          <tr><td style="color:var(--green);font-weight:700;">LOW</td><td style="font-size:11px;color:var(--muted2);">Zone III/IV + smaller reservoir + lower downstream exposure</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── DAM DATA ─────────────────────────────────────────────────
+var DAMS = [
+  {
+    id: "tehri",
+    name: "Tehri Dam",
+    river: "Bhagirathi",
+    district: "Tehri Garhwal",
+    height_m: 260,
+    capacity_mcm: 3540,
+    seismic_zone: "IV",
+    year_built: 2006,
+    operator: "THDC India Ltd",
+    risk: "high",
+    lat: 30.3780, lng: 78.4800,
+    risk_factors: [
+      {label:"Tallest dam in Asia (260m)", warn:true},
+      {label:"3,540 MCM reservoir capacity", warn:true},
+      {label:"Seismic Zone IV", warn:true},
+      {label:"Modern RCC construction (2006)", warn:false},
+      {label:"NDMA emergency action plan exists", warn:false}
+    ],
+    downstream: [
+      {place:"Rishikesh", dist_km:45, pop:"~1,00,000", time_hrs:"3–5 hrs", impact:"high"},
+      {place:"Haridwar", dist_km:78, pop:"~3,00,000", time_hrs:"5–8 hrs", impact:"high"},
+      {place:"Roorkee", dist_km:120, pop:"~1,60,000", time_hrs:"8–12 hrs", impact:"medium"},
+      {place:"Bijnor (UP)", dist_km:200, pop:"~3,00,000", time_hrs:"14–18 hrs", impact:"medium"}
+    ]
+  },
+  {
+    id: "maneri",
+    name: "Maneri Bhali Dam",
+    river: "Bhagirathi",
+    district: "Uttarkashi",
+    height_m: 90,
+    capacity_mcm: 15,
+    seismic_zone: "V",
+    year_built: 1984,
+    operator: "UJVNL",
+    risk: "high",
+    lat: 30.8200, lng: 78.5100,
+    risk_factors: [
+      {label:"Seismic Zone V — highest risk", warn:true},
+      {label:"40+ year old infrastructure (1984)", warn:true},
+      {label:"Upstream of Uttarkashi Town", warn:true},
+      {label:"Bhagirathi river — prone to GLOF surge", warn:true},
+      {label:"Smaller reservoir limits runout volume", warn:false}
+    ],
+    downstream: [
+      {place:"Uttarkashi Town", dist_km:15, pop:"~8,900", time_hrs:"30–60 min", impact:"high"},
+      {place:"Bhatwari", dist_km:8, pop:"~3,100", time_hrs:"15–30 min", impact:"high"},
+      {place:"Dharali", dist_km:22, pop:"~2,100", time_hrs:"1–2 hrs", impact:"medium"}
+    ]
+  },
+  {
+    id: "vishnuprayag",
+    name: "Vishnu Prayag Dam",
+    river: "Alaknanda",
+    district: "Chamoli",
+    height_m: 76,
+    capacity_mcm: 3.7,
+    seismic_zone: "V",
+    year_built: 2006,
+    operator: "Jaiprakash Power Ventures",
+    risk: "medium",
+    lat: 30.5700, lng: 79.5900,
+    risk_factors: [
+      {label:"Seismic Zone V", warn:true},
+      {label:"Near 2021 Chamoli GLOF impact zone", warn:true},
+      {label:"Small reservoir (3.7 MCM) limits damage", warn:false},
+      {label:"Run-of-river design — not storage dam", warn:false}
+    ],
+    downstream: [
+      {place:"Joshimath", dist_km:12, pop:"~16,500", time_hrs:"30–60 min", impact:"high"},
+      {place:"Chamoli Town", dist_km:55, pop:"~10,000", time_hrs:"3–4 hrs", impact:"medium"},
+      {place:"Devprayag", dist_km:140, pop:"~7,000", time_hrs:"8–10 hrs", impact:"low"}
+    ]
+  },
+  {
+    id: "srinagar",
+    name: "Srinagar Dam",
+    river: "Alaknanda",
+    district: "Pauri Garhwal",
+    height_m: 90,
+    capacity_mcm: 24,
+    seismic_zone: "IV",
+    year_built: 2015,
+    operator: "GVK Power & Infrastructure",
+    risk: "medium",
+    lat: 30.2200, lng: 78.7800,
+    risk_factors: [
+      {label:"Srinagar town immediately downstream", warn:true},
+      {label:"Seismic Zone IV", warn:true},
+      {label:"Upstream catchment prone to landslide dams", warn:true},
+      {label:"Modern construction (2015)", warn:false},
+      {label:"Run-of-river design reduces storage risk", warn:false}
+    ],
+    downstream: [
+      {place:"Srinagar Town", dist_km:2, pop:"~30,000", time_hrs:"< 15 min", impact:"high"},
+      {place:"Devprayag", dist_km:35, pop:"~7,000", time_hrs:"2–3 hrs", impact:"medium"},
+      {place:"Rishikesh", dist_km:95, pop:"~1,00,000", time_hrs:"6–8 hrs", impact:"medium"}
+    ]
+  },
+  {
+    id: "koteshwar",
+    name: "Koteshwar Dam",
+    river: "Bhagirathi",
+    district: "Tehri Garhwal",
+    height_m: 97,
+    capacity_mcm: 58,
+    seismic_zone: "IV",
+    year_built: 2012,
+    operator: "THDC India Ltd",
+    risk: "low",
+    lat: 30.2900, lng: 78.5200,
+    risk_factors: [
+      {label:"Directly downstream of Tehri Dam", warn:true},
+      {label:"Receives any Tehri Dam overflow/breach", warn:true},
+      {label:"Modern construction (2012)", warn:false},
+      {label:"Seismic Zone IV — not Zone V", warn:false},
+      {label:"THDC operates both Tehri & Koteshwar jointly", warn:false}
+    ],
+    downstream: [
+      {place:"Devprayag", dist_km:28, pop:"~7,000", time_hrs:"2–3 hrs", impact:"medium"},
+      {place:"Rishikesh", dist_km:75, pop:"~1,00,000", time_hrs:"5–7 hrs", impact:"medium"},
+      {place:"Haridwar", dist_km:108, pop:"~3,00,000", time_hrs:"7–10 hrs", impact:"medium"}
+    ]
+  }
+];
+
+// ── RENDER DAM CARDS ─────────────────────────────────────────
+function renderDams(){
+  var grid = document.getElementById('dam-grid');
+  grid.innerHTML = '';
+  DAMS.forEach(function(dam, i){
+    var factorsHtml = dam.risk_factors.map(function(f){
+      return '<span class="risk-factor'+(f.warn?' warn':' ok')+'">'+
+        (f.warn ? '⚠ ' : '✓ ')+f.label+'</span>';
+    }).join('');
+
+    var downstreamRows = dam.downstream.map(function(d){
+      return '<tr>'+
+        '<td>'+d.place+'</td>'+
+        '<td class="time-val">'+d.time_hrs+'</td>'+
+        '<td style="font-size:12px;">'+d.dist_km+'km</td>'+
+        '<td class="pop-val">'+d.pop+'</td>'+
+        '<td class="impact-'+d.impact+'">'+d.impact.toUpperCase()+'</td>'+
+      '</tr>';
+    }).join('');
+
+    var card = document.createElement('div');
+    card.className = 'dam-card fade-up';
+    card.style.animationDelay = (0.05 + i*0.07)+'s';
+    card.id = 'dam-'+dam.id;
+    card.innerHTML =
+      '<div class="dam-card-header">'+
+        '<div class="dam-card-left">'+
+          '<div class="dam-name">'+dam.name+'</div>'+
+          '<div class="dam-meta">'+dam.river+' River · '+dam.district+' · Built '+dam.year_built+' · '+dam.operator+'</div>'+
+        '</div>'+
+        '<span class="dam-risk-badge '+dam.risk+'">'+dam.risk.toUpperCase()+' RISK</span>'+
+      '</div>'+
+      '<div class="dam-card-body">'+
+        '<div class="dam-stats-row">'+
+          '<div class="dam-stat"><div class="dam-stat-val">'+dam.height_m+'m</div><div class="dam-stat-label">Height</div></div>'+
+          '<div class="dam-stat"><div class="dam-stat-val">'+dam.capacity_mcm+' MCM</div><div class="dam-stat-label">Capacity</div></div>'+
+          '<div class="dam-stat"><div class="dam-stat-val">Zone '+dam.seismic_zone+'</div><div class="dam-stat-label">Seismic Zone</div></div>'+
+          '<div class="dam-stat"><div class="dam-stat-val">'+dam.downstream.length+' zones</div><div class="dam-stat-label">Downstream</div></div>'+
+        '</div>'+
+        '<div class="downstream-title">Downstream Impact Zones</div>'+
+        '<table class="downstream-table">'+
+          '<thead><tr><th>Location</th><th>Est. Travel Time</th><th>Distance</th><th>Population</th><th>Impact</th></tr></thead>'+
+          '<tbody>'+downstreamRows+'</tbody>'+
+        '</table>'+
+        '<div class="risk-factors">'+factorsHtml+'</div>'+
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
+// ── MAP ──────────────────────────────────────────────────────
+function initMap(){
+  var map = L.map('dam-map', {zoomControl:true, scrollWheelZoom:false}).setView([30.5, 78.8], 8);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'© CartoDB',maxZoom:18
+  }).addTo(map);
+
+  var riskColors = {high:'#c0392b', medium:'#d35400', low:'#1e7e4a'};
+
+  DAMS.forEach(function(dam){
+    var color = riskColors[dam.risk];
+    var marker = L.circleMarker([dam.lat, dam.lng], {
+      radius: dam.height_m > 200 ? 14 : dam.height_m > 80 ? 10 : 8,
+      fillColor: color, color: '#fff',
+      weight: 2, opacity: 1, fillOpacity: 0.85
+    }).addTo(map);
+
+    marker.bindPopup(
+      '<div style="font-family:sans-serif;min-width:180px;">'+
+        '<div style="font-weight:700;font-size:13px;margin-bottom:4px;">'+dam.name+'</div>'+
+        '<div style="font-size:11px;color:#666;">'+dam.river+' · '+dam.height_m+'m · '+dam.capacity_mcm+' MCM</div>'+
+        '<div style="margin-top:6px;font-size:11px;padding:2px 8px;display:inline-block;border-radius:2px;background:'+(dam.risk==='high'?'#fde8e6':dam.risk==='medium'?'#fdf0e6':'#e8f5ee')+';color:'+color+';font-weight:600;">'+dam.risk.toUpperCase()+' RISK</div>'+
+      '</div>'
+    );
+  });
+
+  // Draw downstream flow lines for Bhagirathi
+  var bhagirathi = [[30.8200,78.5100],[30.3780,78.4800],[30.2900,78.5200],[30.2200,78.7700],[30.1200,78.3000],[29.9457,78.1642]];
+  L.polyline(bhagirathi, {color:'#1a6b9e', weight:2, opacity:0.4, dashArray:'4,4'}).addTo(map);
+
+  // Alaknanda
+  var alaknanda = [[30.5700,79.5900],[30.2200,78.7800],[30.1200,78.4000]];
+  L.polyline(alaknanda, {color:'#1a6b9e', weight:2, opacity:0.4, dashArray:'4,4'}).addTo(map);
+}
+
+renderDams();
+initMap();
+</script>
+
+</body>
+</html>

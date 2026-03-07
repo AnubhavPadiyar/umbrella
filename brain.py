@@ -5,6 +5,7 @@ import urllib.request
 import json
 import ssl
 import certifi
+from datetime import datetime
 
 
 # ── RAINFALL RISK ──────────────────────────────────────────
@@ -13,6 +14,22 @@ def get_rainfall_risk(mm_48hr):
     if mm_48hr >= 115: return "HIGH"
     if mm_48hr >= 65:  return "MEDIUM"
     return "LOW"
+
+
+# ── PILGRIMAGE SEASON ──────────────────────────────────────
+# Char Dham yatra: May–November (months 5–11)
+# Population multiplier: 30x for pilgrimage villages in season
+
+PILGRIMAGE_MULTIPLIER = 30
+
+def is_pilgrimage_season():
+    month = datetime.now().month
+    return 5 <= month <= 11
+
+def effective_population(population, pilgrimage):
+    if pilgrimage and is_pilgrimage_season():
+        return population * PILGRIMAGE_MULTIPLIER
+    return population
 
 
 # ── FETCH LIVE RAINFALL ────────────────────────────────────
@@ -47,7 +64,7 @@ def fetch_rainfall(lat, lng):
 #    Historical    15pts — past disaster record
 #
 #  EXPOSURE       (20pts) — population at risk
-#    Population    20pts — smoother 5-level curve
+#    Population    20pts — effective population (pilgrimage-adjusted)
 #
 #  Max score: 100
 
@@ -76,13 +93,13 @@ def score_village(village):
     if village["historical_event"]:
         score += 15
 
-    # EXPOSURE
-    population = village["population"]
-    if   population > 10000: score += 20
-    elif population > 5000:  score += 16
-    elif population > 1000:  score += 12
-    elif population > 500:   score += 8
-    else:                    score += 4
+    # EXPOSURE — use effective population (pilgrimage-adjusted)
+    pop = effective_population(village["population"], village.get("pilgrimage", False))
+    if   pop > 10000: score += 20
+    elif pop > 5000:  score += 16
+    elif pop > 1000:  score += 12
+    elif pop > 500:   score += 8
+    else:             score += 4
 
     return score
 
@@ -116,7 +133,7 @@ def get_villages_from_db():
     cursor = conn.cursor()
     cursor.execute("""
         SELECT name, district, population, travel_time,
-               road_access, historical_event, threat_type
+               road_access, historical_event, threat_type, pilgrimage
         FROM villages ORDER BY id
     """)
     rows = cursor.fetchall()
@@ -132,6 +149,7 @@ def get_villages_from_db():
             "road_access":      row[4],
             "historical_event": bool(row[5]),
             "threat_type":      row[6],
+            "pilgrimage":       bool(row[7]) if row[7] is not None else False,
             "rainfall_risk":    "LOW"
         })
     return villages
@@ -140,9 +158,10 @@ def get_villages_from_db():
 # ── MAIN ───────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    season = "PILGRIMAGE SEASON (May–Nov)" if is_pilgrimage_season() else "OFF SEASON"
     print("=" * 60)
     print("UMBRELLA — NDMA Risk Assessment")
-    print("Hazard + Vulnerability + Exposure")
+    print(f"Hazard + Vulnerability + Exposure  [{season}]")
     print("=" * 60)
 
     villages = get_villages_from_db()
@@ -163,21 +182,26 @@ if __name__ == "__main__":
     results = []
     for v in villages:
         score = score_village(v)
+        eff_pop = effective_population(v["population"], v.get("pilgrimage", False))
         results.append({
             "name": v["name"], "district": v["district"],
             "score": score, "risk_level": get_risk_level(score),
-            "rainfall": v["rainfall_risk"], "road_access": v["road_access"]
+            "rainfall": v["rainfall_risk"], "road_access": v["road_access"],
+            "pilgrimage": v.get("pilgrimage", False), "eff_pop": eff_pop
         })
 
     results.sort(key=lambda x: x["score"], reverse=True)
 
-    print(f"\n{'RISK':<8} {'SCORE':<7} {'VILLAGE':<22} {'DISTRICT':<18} {'ROADS':<7} RAINFALL")
-    print("-" * 70)
+    print(f"\n{'RISK':<8} {'SCORE':<7} {'VILLAGE':<22} {'DISTRICT':<18} {'POP':<10} RAINFALL")
+    print("-" * 75)
     for r in results:
-        print(f"{r['risk_level']:<8} {r['score']:<7} {r['name']:<22} {r['district']:<18} {r['road_access']:<7} {r['rainfall']}")
+        pop_str = f"{r['eff_pop']:,}" + (" 🛕" if r["pilgrimage"] and is_pilgrimage_season() else "")
+        print(f"{r['risk_level']:<8} {r['score']:<7} {r['name']:<22} {r['district']:<18} {pop_str:<10} {r['rainfall']}")
 
     high = [r for r in results if r["risk_level"] == "HIGH"]
     med  = [r for r in results if r["risk_level"] == "MEDIUM"]
     low  = [r for r in results if r["risk_level"] == "LOW"]
     print(f"\n🔴 High: {len(high)}  🟠 Medium: {len(med)}  🟢 Low: {len(low)}")
+    if is_pilgrimage_season():
+        print(f"🛕 Pilgrimage season active — population x{PILGRIMAGE_MULTIPLIER} for Char Dham villages")
     print("=" * 60)
