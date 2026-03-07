@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — River Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root{
+      --bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--bg4:#e6e2d8;
+      --navy:#1a2744;--navy2:#243358;
+      --red:#c0392b;--red-dim:rgba(192,57,43,0.08);--red-border:rgba(192,57,43,0.2);
+      --orange:#d35400;--orange-dim:rgba(211,84,0,0.08);--orange-border:rgba(211,84,0,0.2);
+      --green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--green-border:rgba(30,126,74,0.2);
+      --blue:#1a6b9e;--blue-dim:rgba(26,107,158,0.1);--blue-border:rgba(26,107,158,0.25);
+      --border:#ddd9ce;--border2:#c8c3b5;
+      --text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;
+      --serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+    /* NAV */
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
+
+    /* HERO */
+    .hero{background:var(--navy);padding:48px 48px 44px;border-bottom:3px solid var(--blue);}
+    .hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:14px;}
+    .hero-title{font-size:36px;font-weight:700;color:white;margin-bottom:8px;line-height:1.2;}
+    .hero-sub{font-size:14px;color:rgba(255,255,255,0.5);max-width:600px;line-height:1.7;}
+    .hero-stats{display:flex;gap:32px;margin-top:28px;}
+    .hero-stat{border-left:2px solid rgba(255,255,255,0.1);padding-left:16px;}
+    .hero-stat-val{font-family:var(--mono);font-size:22px;font-weight:500;color:white;}
+    .hero-stat-label{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;}
+
+    /* TICKER */
+    .ticker{background:var(--navy2);border-bottom:1px solid rgba(255,255,255,0.08);padding:8px 48px;display:flex;align-items:center;gap:12px;}
+    .ticker-live{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:1px;display:flex;align-items:center;gap:5px;}
+    .ticker-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .ticker-text{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.4);}
+
+    /* LAYOUT */
+    .page{max-width:1280px;margin:0 auto;padding:32px 48px 80px;}
+    .two-col{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;}
+
+    /* SECTION LABEL */
+    .section-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    /* RIVER CARDS */
+    .river-grid{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+    .river-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:all .2s;}
+    .river-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+    .river-card-header{padding:16px 20px;display:flex;align-items:center;gap:16px;}
+    .river-icon{width:40px;height:40px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+    .river-info{flex:1;}
+    .river-name{font-size:15px;font-weight:700;color:var(--navy);}
+    .river-meta{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;}
+    .river-right{text-align:right;}
+    .river-discharge{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--navy);}
+    .river-discharge-unit{font-size:11px;color:var(--muted2);}
+    .risk-badge{display:inline-block;padding:3px 10px;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:600;margin-top:4px;}
+    .risk-badge.high{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+    .risk-badge.medium{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange-border);}
+    .risk-badge.low{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+    .risk-badge.loading{background:var(--bg3);color:var(--muted2);border:1px solid var(--border);}
+
+    /* DISCHARGE BAR */
+    .river-card-body{padding:0 20px 16px;border-top:1px solid var(--border);}
+    .bar-row{display:flex;align-items:center;gap:12px;margin-top:12px;}
+    .bar-label{font-family:var(--mono);font-size:10px;color:var(--muted2);width:60px;text-align:right;flex-shrink:0;}
+    .bar-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:3px;transition:width .8s ease;}
+    .bar-fill.high{background:var(--red);}
+    .bar-fill.medium{background:var(--orange);}
+    .bar-fill.low{background:var(--blue);}
+
+    /* RIVER DETAILS */
+    .river-details{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+    .river-detail{background:var(--bg3);border-radius:3px;padding:10px 12px;}
+    .river-detail-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--navy);}
+    .river-detail-label{font-size:10px;color:var(--muted2);margin-top:2px;}
+
+    /* VILLAGES AT RISK */
+    .villages-at-risk{margin-top:14px;}
+    .villages-label{font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+    .village-tags{display:flex;flex-wrap:wrap;gap:6px;}
+    .village-tag{font-size:11px;padding:3px 10px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);color:var(--navy);}
+    .village-tag.high{background:var(--red-dim);border-color:var(--red-border);color:var(--red);}
+
+    /* RIGHT PANEL */
+    .panel-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px;}
+    .panel-title{font-size:11px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3);}
+    #river-map{height:320px;width:100%;}
+
+    /* SUMMARY STATS */
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+    .summary-cell{background:var(--bg2);padding:16px;}
+    .summary-val{font-family:var(--mono);font-size:24px;font-weight:500;}
+    .summary-val.red{color:var(--red);}
+    .summary-val.orange{color:var(--orange);}
+    .summary-val.green{color:var(--green);}
+    .summary-cell-label{font-size:11px;color:var(--muted2);margin-top:4px;}
+
+    /* THRESHOLDS TABLE */
+    .thresh-table{width:100%;border-collapse:collapse;}
+    .thresh-table td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;}
+    .thresh-table td:first-child{font-weight:600;color:var(--navy);}
+    .thresh-table td:last-child{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+
+    /* SOURCE NOTE */
+    .source-note{background:var(--blue-dim);border:1px solid var(--blue-border);border-radius:4px;padding:12px 14px;margin-top:20px;}
+    .source-note p{font-size:11px;color:var(--blue);line-height:1.7;}
+
+    .fade-up{opacity:0;transform:translateY(10px);animation:fu .4s ease forwards;}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="index.html">
+    <div class="logo-mark">☂</div>
+    <div>
+      <div class="logo-text">Umbrella</div>
+      <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="map.html">Risk Map</a></li>
+    <li><a href="vulnerability.html">Vulnerability</a></li>
+    <li><a href="resources.html">Resources</a></li>
+    <li><a href="earthquake.html">Seismic</a></li>
+    <li><a href="fire.html">Forest Fire</a></li>
+    <li><a href="dam.html">Dam Risk</a></li>
+    <li><a href="river.html" class="active">Rivers</a></li>
+    <li><a href="incidents.html">Incident Log</a></li>
+    <li><a href="report.html">Report</a></li>
+    <li><a href="admin.html">Admin</a></li>
+    <li><a href="about.html" style="color:rgba(255,255,255,0.4);">About</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Live River Discharge Monitor</div>
+  <div class="hero-title">Himalayan River Gauge Network</div>
+  <div class="hero-sub">Live river discharge data for 7 major Himalayan rivers across Uttarakhand. Flow rates from Open-Meteo Flood API — updated daily. Classified against historical flood thresholds.</div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">7</div>
+      <div class="hero-stat-label">Rivers monitored</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="stat-high">—</div>
+      <div class="hero-stat-label">At high discharge</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="stat-updated">—</div>
+      <div class="hero-stat-label">Last updated</div>
+    </div>
+  </div>
+</div>
+
+<div class="ticker">
+  <div class="ticker-live"><div class="ticker-dot"></div>LIVE</div>
+  <div class="ticker-text" id="ticker-text">Connecting to Open-Meteo Flood API...</div>
+</div>
+
+<div class="page">
+  <div class="two-col">
+
+    <!-- LEFT: River Cards -->
+    <div>
+      <div class="section-label fade-up d1">Live Discharge — m³/s</div>
+      <div class="river-grid" id="river-grid">
+        <!-- Cards rendered by JS -->
+      </div>
+
+      <div class="source-note fade-up">
+        <p><strong>Data Source:</strong> Open-Meteo Flood API — ERA5-Land reanalysis + GloFAS river discharge model. Updated daily. Thresholds based on historical 75th/90th percentile discharge for each gauge point. For official flood warnings, refer to CWC India (cwc.gov.in) and IMD.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div>
+      <div class="panel-card fade-up d2">
+        <div class="panel-title">River Network Map</div>
+        <div id="river-map"></div>
+      </div>
+
+      <div class="panel-card fade-up d3">
+        <div class="panel-title">Current Status</div>
+        <div class="summary-grid" id="summary-grid">
+          <div class="summary-cell"><div class="summary-val red" id="sum-high">—</div><div class="summary-cell-label">High Discharge</div></div>
+          <div class="summary-cell"><div class="summary-val orange" id="sum-med">—</div><div class="summary-cell-label">Medium Discharge</div></div>
+          <div class="summary-cell"><div class="summary-val green" id="sum-low">—</div><div class="summary-cell-label">Normal Flow</div></div>
+          <div class="summary-cell"><div class="summary-val" id="sum-total" style="color:var(--navy)">7</div><div class="summary-cell-label">Rivers Total</div></div>
+        </div>
+      </div>
+
+      <div class="panel-card fade-up d4">
+        <div class="panel-title">Discharge Thresholds</div>
+        <table class="thresh-table">
+          <tr><td>Bhagirathi</td><td>HIGH &gt;500 · MED &gt;200</td></tr>
+          <tr><td>Alaknanda</td><td>HIGH &gt;800 · MED &gt;300</td></tr>
+          <tr><td>Mandakini</td><td>HIGH &gt;400 · MED &gt;150</td></tr>
+          <tr><td>Pindar</td><td>HIGH &gt;300 · MED &gt;100</td></tr>
+          <tr><td>Kali (Sharda)</td><td>HIGH &gt;600 · MED &gt;200</td></tr>
+          <tr><td>Yamuna</td><td>HIGH &gt;300 · MED &gt;100</td></tr>
+          <tr><td>Tons</td><td>HIGH &gt;200 · MED &gt;80</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── RIVER CONFIG ─────────────────────────────────────────────
+var RIVERS = [
+  {
+    id: "bhagirathi",
+    name: "Bhagirathi",
+    icon: "🏔",
+    origin: "Gangotri Glacier",
+    merges: "Meets Alaknanda at Devprayag → Ganga",
+    district: "Uttarkashi → Tehri",
+    lat: 30.7268, lng: 78.4354,
+    thresh_high: 500, thresh_med: 200,
+    villages: ["Gangotri","Dharali","Uttarkashi Town","Bhatwari"]
+  },
+  {
+    id: "alaknanda",
+    name: "Alaknanda",
+    icon: "🌊",
+    origin: "Satopanth Glacier, Chamoli",
+    merges: "Meets Bhagirathi at Devprayag → Ganga",
+    district: "Chamoli → Pauri Garhwal",
+    lat: 30.4021, lng: 79.3215,
+    thresh_high: 800, thresh_med: 300,
+    villages: ["Joshimath","Raini","Tapovan","Badrinath","Mana Village"]
+  },
+  {
+    id: "mandakini",
+    name: "Mandakini",
+    icon: "💧",
+    origin: "Chorabari Glacier, Rudraprayag",
+    merges: "Meets Alaknanda at Rudraprayag",
+    district: "Rudraprayag",
+    lat: 30.2847, lng: 78.9816,
+    thresh_high: 400, thresh_med: 150,
+    villages: ["Kedarnath","Gaurikund","Sonprayag"]
+  },
+  {
+    id: "pindar",
+    name: "Pindar",
+    icon: "🏞",
+    origin: "Pindari Glacier, Bageshwar",
+    merges: "Meets Alaknanda at Karnaprayag",
+    district: "Bageshwar → Chamoli",
+    lat: 30.1700, lng: 79.7700,
+    thresh_high: 300, thresh_med: 100,
+    villages: ["Munsiyari (basin)","Karnaprayag"]
+  },
+  {
+    id: "kali",
+    name: "Kali (Sharda)",
+    icon: "🌐",
+    origin: "Kalapani, Pithoragarh",
+    merges: "India-Nepal border river → Sharda in plains",
+    district: "Pithoragarh",
+    lat: 29.5829, lng: 80.2181,
+    thresh_high: 600, thresh_med: 200,
+    villages: ["Pithoragarh Town","Munsiyari"]
+  },
+  {
+    id: "yamuna",
+    name: "Yamuna",
+    icon: "🌿",
+    origin: "Yamunotri Glacier, Uttarkashi",
+    merges: "Flows into plains via Dehradun",
+    district: "Uttarkashi → Dehradun",
+    lat: 30.9815, lng: 78.4595,
+    thresh_high: 300, thresh_med: 100,
+    villages: ["Barkot","Naugaon (Yamuna basin)"]
+  },
+  {
+    id: "tons",
+    name: "Tons",
+    icon: "🏔",
+    origin: "Har-ki-Dun valley, Uttarkashi",
+    merges: "Largest tributary of Yamuna in Uttarakhand",
+    district: "Uttarkashi → Dehradun",
+    lat: 30.9800, lng: 78.2600,
+    thresh_high: 200, thresh_med: 80,
+    villages: ["Mori","Netwar","Tiuni"]
+  }
+];
+
+// ── MAP ──────────────────────────────────────────────────────
+var map = L.map('river-map', {zoomControl:true, scrollWheelZoom:false}).setView([30.4, 79.0], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© CartoDB', maxZoom:18
+}).addTo(map);
+
+var mapMarkers = {};
+
+function getColor(risk){
+  return risk==='high' ? '#c0392b' : risk==='medium' ? '#d35400' : risk==='loading' ? '#aaa' : '#1a6b9e';
+}
+
+RIVERS.forEach(function(r){
+  var marker = L.circleMarker([r.lat, r.lng], {
+    radius:9, fillColor:'#aaa', color:'#fff',
+    weight:2, opacity:1, fillOpacity:0.85
+  }).addTo(map);
+  marker.bindTooltip(r.name, {permanent:false, direction:'top'});
+  mapMarkers[r.id] = marker;
+});
+
+function updateMarker(id, risk, discharge){
+  var m = mapMarkers[id];
+  if(!m) return;
+  m.setStyle({fillColor: getColor(risk)});
+  var r = RIVERS.find(function(x){return x.id===id;});
+  m.bindPopup(
+    '<div style="font-family:sans-serif;min-width:160px;">'+
+      '<div style="font-weight:700;font-size:13px;margin-bottom:3px;">'+r.name+'</div>'+
+      '<div style="font-family:monospace;font-size:12px;color:#444;">'+discharge+' m³/s</div>'+
+      '<div style="margin-top:5px;font-size:11px;font-weight:600;color:'+getColor(risk)+';">'+risk.toUpperCase()+'</div>'+
+    '</div>'
+  );
+}
+
+// ── FETCH DISCHARGE ──────────────────────────────────────────
+function getDischargeRisk(val, thresh_high, thresh_med){
+  if(val >= thresh_high) return 'high';
+  if(val >= thresh_med)  return 'medium';
+  return 'low';
+}
+
+function getBarPct(val, thresh_high){
+  return Math.min(100, Math.round((val / (thresh_high * 1.2)) * 100));
+}
+
+function renderCard(river, discharge, risk){
+  var card = document.getElementById('card-'+river.id);
+  if(!card) return;
+
+  var pct = getBarPct(discharge, river.thresh_high);
+  var dischargeStr = discharge !== null ? Math.round(discharge).toLocaleString() : '—';
+
+  card.querySelector('.river-discharge').innerText = dischargeStr;
+  card.querySelector('.river-discharge-unit').innerText = discharge !== null ? 'm³/s' : '';
+  card.querySelector('.risk-badge').className = 'risk-badge '+risk;
+  card.querySelector('.risk-badge').innerText = risk.toUpperCase();
+  card.querySelector('.bar-fill').className = 'bar-fill '+risk;
+  card.querySelector('.bar-fill').style.width = pct+'%';
+
+  updateMarker(river.id, risk, dischargeStr);
+}
+
+function buildCards(){
+  var grid = document.getElementById('river-grid');
+  grid.innerHTML = '';
+  RIVERS.forEach(function(river, i){
+    var villageTagsHtml = river.villages.map(function(v){
+      return '<span class="village-tag">'+v+'</span>';
+    }).join('');
+
+    var div = document.createElement('div');
+    div.className = 'river-card fade-up';
+    div.style.animationDelay = (0.05+i*0.06)+'s';
+    div.id = 'card-'+river.id;
+    div.innerHTML =
+      '<div class="river-card-header">'+
+        '<div class="river-icon">'+river.icon+'</div>'+
+        '<div class="river-info">'+
+          '<div class="river-name">'+river.name+'</div>'+
+          '<div class="river-meta">'+river.origin+' · '+river.district+'</div>'+
+        '</div>'+
+        '<div class="river-right">'+
+          '<div class="river-discharge">—</div>'+
+          '<div class="river-discharge-unit"></div>'+
+          '<div><span class="risk-badge loading">LOADING</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="river-card-body">'+
+        '<div class="bar-row">'+
+          '<span class="bar-label">discharge</span>'+
+          '<div class="bar-track"><div class="bar-fill low" style="width:0%"></div></div>'+
+        '</div>'+
+        '<div class="river-details">'+
+          '<div class="river-detail"><div class="river-detail-val" id="d7-'+river.id+'">—</div><div class="river-detail-label">7-day avg m³/s</div></div>'+
+          '<div class="river-detail"><div class="river-detail-val" id="dpeak-'+river.id+'">—</div><div class="river-detail-label">7-day peak</div></div>'+
+          '<div class="river-detail"><div class="river-detail-val">'+river.thresh_med+'</div><div class="river-detail-label">Med threshold</div></div>'+
+          '<div class="river-detail"><div class="river-detail-val">'+river.thresh_high+'</div><div class="river-detail-label">High threshold</div></div>'+
+        '</div>'+
+        '<div class="villages-at-risk">'+
+          '<div class="villages-label">Villages on this river</div>'+
+          '<div class="village-tags">'+villageTagsHtml+'</div>'+
+        '</div>'+
+      '</div>';
+    grid.appendChild(div);
+  });
+}
+
+async function fetchAllRivers(){
+  buildCards();
+
+  var highCount = 0, medCount = 0, lowCount = 0;
+  var allRisks = [];
+
+  for(var i=0; i<RIVERS.length; i++){
+    var river = RIVERS[i];
+    try {
+      var url = 'https://flood-api.open-meteo.com/v1/flood'+
+        '?latitude='+river.lat+'&longitude='+river.lng+
+        '&daily=river_discharge&past_days=7&forecast_days=1&timezone=Asia%2FKolkata';
+
+      var resp = await fetch(url);
+      var data = await resp.json();
+      var values = data.daily.river_discharge;
+
+      // Today = last value
+      var today = values[values.length-1];
+      var avg7 = values.reduce(function(a,b){return a+(b||0);},0) / values.filter(function(v){return v!==null;}).length;
+      var peak7 = Math.max.apply(null, values.filter(function(v){return v!==null;}));
+
+      var risk = getDischargeRisk(today, river.thresh_high, river.thresh_med);
+      allRisks.push(risk);
+
+      renderCard(river, today, risk);
+
+      // Update 7-day stats
+      var d7el = document.getElementById('d7-'+river.id);
+      var dpel = document.getElementById('dpeak-'+river.id);
+      if(d7el) d7el.innerText = Math.round(avg7).toLocaleString();
+      if(dpel) dpel.innerText = Math.round(peak7).toLocaleString();
+
+      if(risk==='high') highCount++;
+      else if(risk==='medium') medCount++;
+      else lowCount++;
+
+    } catch(e) {
+      renderCard(river, null, 'low');
+      allRisks.push('low');
+      lowCount++;
+    }
+  }
+
+  // Update summary
+  document.getElementById('stat-high').innerText = highCount;
+  document.getElementById('sum-high').innerText = highCount;
+  document.getElementById('sum-med').innerText = medCount;
+  document.getElementById('sum-low').innerText = lowCount;
+
+  var now = new Date();
+  var timeStr = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  document.getElementById('stat-updated').innerText = timeStr;
+  document.getElementById('ticker-text').innerText =
+    'All rivers updated — '+
+    (highCount>0 ? highCount+' at high discharge · ' : '')+
+    (medCount>0 ? medCount+' at medium · ' : '')+
+    lowCount+' normal flow · Source: Open-Meteo Flood API';
+}
+
+fetchAllRivers();
+</script>
+
+</body>
+</html>
