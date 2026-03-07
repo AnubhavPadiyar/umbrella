@@ -71,6 +71,20 @@ def auto_migrate():
     else:
         print("✓ Database schema OK — pilgrimage exists")
 
+    # Create incidents table if missing
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS incidents (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            time      TEXT NOT NULL,
+            source    TEXT NOT NULL,
+            text      TEXT NOT NULL,
+            officer   TEXT,
+            risk      TEXT
+        )
+    """)
+    conn.commit()
+    print("✓ Database schema OK — incidents table exists")
+
     conn.close()
 
 auto_migrate()
@@ -468,6 +482,57 @@ def fire():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "fires": [], "villages": []})
+
+
+# ── ROUTE 10 — Get Incidents ──────────────────────────────
+
+@app.route("/incidents")
+def get_incidents():
+    import sqlite3, os
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "umbrella.db")
+    conn   = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, time, source, text, officer, risk FROM incidents ORDER BY id DESC LIMIT 200")
+    rows = cursor.fetchall()
+    conn.close()
+    incidents = [{"id":r[0],"time":r[1],"source":r[2],"text":r[3],"officer":r[4],"risk":r[5]} for r in rows]
+    return jsonify({"status":"success","count":len(incidents),"incidents":incidents})
+
+
+# ── ROUTE 11 — Add Incident ────────────────────────────────
+
+@app.route("/incidents", methods=["POST"])
+def add_incident():
+    import sqlite3, os
+    data    = request.get_json()
+    time    = data.get("time")
+    source  = data.get("source","manual")
+    text    = data.get("text","")
+    officer = data.get("officer")
+    risk    = data.get("risk")
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "umbrella.db")
+    conn   = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO incidents (time,source,text,officer,risk) VALUES (?,?,?,?,?)",
+                   (time, source, text, officer, risk))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return jsonify({"status":"success","id":new_id})
+
+
+# ── ROUTE 12 — Delete Incident ─────────────────────────────
+
+@app.route("/incidents/<int:incident_id>", methods=["DELETE"])
+def delete_incident(incident_id):
+    import sqlite3, os
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "umbrella.db")
+    conn   = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM incidents WHERE id=?", (incident_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status":"success","message":f"Incident {incident_id} deleted"})
 
 
 # ── START ──────────────────────────────────────────────────
