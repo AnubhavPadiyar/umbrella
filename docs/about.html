@@ -69,7 +69,8 @@
 
     /* Builder card */
     .builder-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:32px;display:flex;gap:32px;align-items:flex-start;}
-    .builder-avatar{width:64px;height:64px;background:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;color:white;font-family:var(--serif);font-weight:600;}
+    .builder-avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);}
+    .builder-avatar img{width:100%;height:100%;object-fit:cover;}
     .builder-name{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--navy);margin-bottom:4px;}
     .builder-title{font-size:13px;color:var(--muted);margin-bottom:20px;}
     .builder-links{display:flex;gap:10px;flex-wrap:wrap;}
@@ -99,10 +100,9 @@
       <li><a href="earthquake.html">Seismic</a></li>
       <li><a href="fire.html">Forest Fire</a></li>
       <li><a href="incidents.html">Incident Log</a></li>
-      <li><a href="methodology.html">Methodology</a></li>
       <li><a href="report.html">Report</a></li>
-      <li><a href="about.html" class="active">About</a></li>
       <li><a href="admin.html">Admin</a></li>
+      <li><a href="about.html" class="active" style="color:rgba(255,255,255,0.4);">About</a></li>
     </ul>
   </nav>
 
@@ -256,7 +256,7 @@
     <div class="section fade-up d5">
       <div class="section-label">Built By</div>
       <div class="builder-card">
-        <div class="builder-avatar">A</div>
+        <div class="builder-avatar"><img src="anubhav.png" alt="Anubhav Padiyar"></div>
         <div>
           <div class="builder-name">Anubhav Padiyar</div>
           <div class="builder-title">B.Tech Computer Science and Engineering</div>
@@ -269,16 +269,6 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               LinkedIn
             </a>
-            <a class="builder-link" href="mailto:anubhavpadiyar@gmail.com">
+            <a class="builder-link" href="/cdn-cgi/l/email-protection#6d0c03180f050c1b1d0c0904140c1f2d0a000c0401430e0200">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-              anubhavpadiyar@gmail.com
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</body>
-</html>
+              <span class="__cf_email__" data-cfemail="3f5e514a5d575e494f5e5b56465e4d7f58525

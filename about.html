@@ -1,448 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Umbrella — About</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Umbrella — About</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f4f1eb;--bg2:#ffffff;--bg3:#edeae2;--navy:#1a2744;--navy2:#243358;--red:#c0392b;--red-dim:rgba(192,57,43,0.08);--orange:#d35400;--green:#1e7e4a;--green-dim:rgba(30,126,74,0.08);--border:#ddd9ce;--border2:#c8c3b5;--text:#1a1a1a;--muted:#6b6456;--muted2:#8c8070;--serif:'Lora',Georgia,serif;--sans:'Instrument Sans',sans-serif;--mono:'IBM Plex Mono',monospace;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    .navbar{background:var(--navy);padding:0 48px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+    .logo-mark{width:28px;height:28px;background:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:1px;}
+    .logo-sub{font-size:10px;color:rgba(255,255,255,0.45);margin-top:1px;}
+    .nav-links{display:flex;gap:4px;list-style:none;}
+    .nav-links a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:13px;padding:6px 14px;border-radius:3px;transition:all .15s;font-weight:500;}
+    .nav-links a:hover{color:white;background:rgba(255,255,255,0.1);}
+    .nav-links a.active{color:white;background:rgba(255,255,255,0.15);}
 
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    /* Hero */
+    .hero{background:var(--navy);padding:64px 48px 56px;border-bottom:3px solid var(--red);}
+    .hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:16px;}
+    .hero-title{font-family:var(--serif);font-size:48px;font-weight:600;color:white;margin-bottom:12px;line-height:1.15;}
+    .hero-title em{color:rgba(255,255,255,0.35);font-style:italic;}
+    .hero-sub{font-size:15px;color:rgba(255,255,255,0.5);max-width:560px;line-height:1.7;}
 
-<style>
+    /* Content */
+    .page{max-width:900px;margin:0 auto;padding:56px 48px 80px;}
 
-:root{
---bg:#f4f1eb;
---bg2:#ffffff;
---bg3:#edeae2;
---navy:#1a2744;
---red:#c0392b;
---orange:#d35400;
---green:#1e7e4a;
---green-dim:rgba(30,126,74,0.08);
---border:#ddd9ce;
---border2:#c8c3b5;
---text:#1a1a1a;
---muted:#6b6456;
---muted2:#8c8070;
---serif:'Lora',Georgia,serif;
---sans:'Instrument Sans',sans-serif;
---mono:'IBM Plex Mono',monospace;
-}
+    .section{margin-bottom:56px;}
+    .section-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+    /* Problem */
+    .problem-text{font-family:var(--serif);font-size:18px;line-height:1.9;color:var(--text);}
+    .problem-text strong{color:var(--navy);}
 
-body{
-background:var(--bg);
-color:var(--text);
-font-family:var(--sans);
-}
+    /* What it does */
+    .modules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .module-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;}
+    .module-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+    .module-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+    .module-desc{font-size:12px;color:var(--muted);line-height:1.6;}
 
-/* NAVBAR */
+    /* Tech stack */
+    .stack-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+    .stack-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 24px;}
+    .stack-card-title{font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .stack-tags{display:flex;flex-wrap:wrap;gap:6px;}
+    .stack-tag{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);color:var(--navy);}
+    .stack-tag.source{background:var(--green-dim);border-color:rgba(30,126,74,0.2);color:var(--green);}
 
-.navbar{
-background:var(--navy);
-padding:0 48px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-height:56px;
-position:sticky;
-top:0;
-}
+    /* Formula */
+    .formula-table{width:100%;border-collapse:collapse;}
+    .formula-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase;padding:10px 16px;background:var(--bg3);border:1px solid var(--border);}
+    .formula-table td{padding:10px 16px;border:1px solid var(--border);font-size:13px;}
+    .formula-table tr:hover td{background:var(--bg3);}
+    .component-tag{display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:600;}
+    .tag-h{background:var(--red-dim);color:var(--red);}
+    .tag-v{background:rgba(211,84,0,0.1);color:var(--orange);}
+    .tag-e{background:var(--green-dim);color:var(--green);}
+    .pts{font-family:var(--mono);font-weight:600;color:var(--navy);}
+    .scoring{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;}
 
-.logo{
-display:flex;
-align-items:center;
-gap:12px;
-text-decoration:none;
-}
+    /* Builder card */
+    .builder-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:32px;display:flex;gap:32px;align-items:flex-start;}
+    .builder-avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);}
+    .builder-avatar img{width:100%;height:100%;object-fit:cover;}
+    .builder-name{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+    .builder-title{font-size:13px;color:var(--muted);margin-bottom:20px;}
+    .builder-links{display:flex;gap:10px;flex-wrap:wrap;}
+    .builder-link{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:3px;font-size:12px;font-weight:600;text-decoration:none;transition:all .15s;border:1px solid var(--border2);background:var(--bg3);color:var(--navy);}
+    .builder-link:hover{background:var(--navy);color:white;border-color:var(--navy);}
 
-.logo-mark{
-width:28px;
-height:28px;
-background:white;
-border-radius:4px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:16px;
-}
-
-.logo-text{
-font-size:15px;
-font-weight:700;
-color:white;
-letter-spacing:1px;
-}
-
-.logo-sub{
-font-size:10px;
-color:rgba(255,255,255,0.5);
-}
-
-.nav-links{
-display:flex;
-gap:4px;
-list-style:none;
-}
-
-.nav-links a{
-color:rgba(255,255,255,0.7);
-text-decoration:none;
-font-size:13px;
-padding:6px 14px;
-border-radius:3px;
-}
-
-.nav-links a:hover{
-color:white;
-background:rgba(255,255,255,0.1);
-}
-
-.nav-links a.active{
-color:white;
-background:rgba(255,255,255,0.15);
-}
-
-/* HERO */
-
-.hero{
-background:var(--navy);
-padding:64px 48px;
-border-bottom:3px solid var(--red);
-}
-
-.hero-eyebrow{
-font-family:var(--mono);
-font-size:10px;
-letter-spacing:2px;
-text-transform:uppercase;
-color:rgba(255,255,255,0.4);
-margin-bottom:16px;
-}
-
-.hero-title{
-font-family:var(--serif);
-font-size:46px;
-color:white;
-margin-bottom:12px;
-}
-
-.hero-title em{
-color:rgba(255,255,255,0.4);
-}
-
-.hero-sub{
-color:rgba(255,255,255,0.6);
-max-width:560px;
-line-height:1.7;
-}
-
-/* PAGE */
-
-.page{
-max-width:900px;
-margin:auto;
-padding:60px 48px;
-}
-
-.section{
-margin-bottom:60px;
-}
-
-.section-label{
-font-family:var(--mono);
-font-size:10px;
-letter-spacing:2px;
-text-transform:uppercase;
-color:var(--muted2);
-margin-bottom:20px;
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-.section-label::after{
-content:'';
-flex:1;
-height:1px;
-background:var(--border);
-}
-
-.problem-text{
-font-family:var(--serif);
-font-size:18px;
-line-height:1.9;
-}
-
-/* MODULE GRID */
-
-.modules-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:14px;
-}
-
-.module-item{
-background:white;
-border:1px solid var(--border);
-border-radius:4px;
-padding:18px;
-display:flex;
-gap:14px;
-}
-
-.module-icon{
-font-size:20px;
-}
-
-.module-name{
-font-weight:600;
-color:var(--navy);
-font-size:13px;
-margin-bottom:4px;
-}
-
-.module-desc{
-font-size:12px;
-color:var(--muted);
-line-height:1.6;
-}
-
-/* BUILDER CARD */
-
-.builder-card{
-background:white;
-border:1px solid var(--border);
-border-radius:4px;
-padding:32px;
-display:flex;
-gap:28px;
-transition:all .25s;
-}
-
-.builder-card:hover{
-transform:translateY(-4px);
-box-shadow:0 10px 25px rgba(0,0,0,0.08);
-}
-
-.builder-avatar{
-width:80px;
-height:80px;
-border-radius:50%;
-overflow:hidden;
-border:2px solid var(--border);
-flex-shrink:0;
-}
-
-.builder-avatar img{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-.builder-name{
-font-family:var(--serif);
-font-size:22px;
-color:var(--navy);
-margin-bottom:4px;
-}
-
-.builder-title{
-font-size:13px;
-color:var(--muted);
-line-height:1.6;
-margin-bottom:18px;
-}
-
-.builder-links{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-.builder-link{
-display:inline-flex;
-align-items:center;
-padding:7px 16px;
-border-radius:3px;
-font-size:12px;
-font-weight:600;
-text-decoration:none;
-border:1px solid var(--border2);
-background:var(--bg3);
-color:var(--navy);
-transition:all .15s;
-}
-
-.builder-link:hover{
-background:var(--navy);
-color:white;
-border-color:var(--navy);
-}
-
-.note{
-margin-top:16px;
-font-size:12px;
-color:var(--muted2);
-font-family:var(--mono);
-}
-
-</style>
+    .fade-up{opacity:0;transform:translateY(12px);animation:fu .5s ease forwards;}
+    .d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}
+    @keyframes fu{to{opacity:1;transform:translateY(0);}}
+  </style>
 </head>
-
 <body>
 
-<nav class="navbar">
+  <nav class="navbar">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">☂</div>
+      <div>
+        <div class="logo-text">Umbrella</div>
+        <div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="map.html">Risk Map</a></li>
+      <li><a href="vulnerability.html">Vulnerability</a></li>
+      <li><a href="resources.html">Resources</a></li>
+      <li><a href="earthquake.html">Seismic</a></li>
+      <li><a href="fire.html">Forest Fire</a></li>
+      <li><a href="incidents.html">Incident Log</a></li>
+      <li><a href="report.html">Report</a></li>
+      <li><a href="admin.html">Admin</a></li>
+      <li><a href="about.html" class="active" style="color:rgba(255,255,255,0.4);">About</a></li>
+    </ul>
+  </nav>
 
-<a class="logo" href="index.html">
-<div class="logo-mark">☂</div>
-<div>
-<div class="logo-text">Umbrella</div>
-<div class="logo-sub">Disaster Intelligence · Uttarakhand</div>
-</div>
-</a>
+  <div class="hero">
+    <div class="hero-eyebrow">About Umbrella</div>
+    <div class="hero-title">Built for the mountains.<br><em>Because the mountains don't wait.</em></div>
+    <div class="hero-sub">A multi-hazard early warning system for the Indian Himalayan Region — connecting live satellite data to village-level disaster response.</div>
+  </div>
 
-<ul class="nav-links">
-<li><a href="index.html">Dashboard</a></li>
-<li><a href="map.html">Risk Map</a></li>
-<li><a href="vulnerability.html">Vulnerability</a></li>
-<li><a href="resources.html">Resources</a></li>
-<li><a href="earthquake.html">Seismic</a></li>
-<li><a href="fire.html">Forest Fire</a></li>
-<li><a href="incidents.html">Incident Log</a></li>
-<li><a href="methodology.html">Methodology</a></li>
-<li><a href="report.html">Report</a></li>
-<li><a href="about.html" class="active">About</a></li>
-<li><a href="admin.html">Admin</a></li>
-</ul>
+  <div class="page">
 
-</nav>
+    <!-- Problem -->
+    <div class="section fade-up d1">
+      <div class="section-label">The Problem</div>
+      <p class="problem-text">
+        The Indian Himalayan Region — Uttarakhand, Himachal Pradesh, Sikkim — faces an accelerating cycle of disasters. Glacial lake outbursts, flash floods, forest fires, earthquakes. The data to predict these events often exists. What doesn't exist is a tool that <strong>connects that data to the ground</strong> — which village is at risk right now, which road is the last one open, how many minutes until the flood front arrives.<br><br>
+        Umbrella is built to fill that gap. Not just weather alerts — <strong>ground intelligence for district-level response</strong>.
+      </p>
+    </div>
 
-<div class="hero">
+    <!-- What it does -->
+    <div class="section fade-up d2">
+      <div class="section-label">What Umbrella Does</div>
+      <div class="modules-grid">
+        <div class="module-item">
+          <div class="module-icon">🌧</div>
+          <div>
+            <div class="module-name">Flood & GLOF Risk</div>
+            <div class="module-desc">Live 48hr rainfall from Open-Meteo API. Glacial lake travel times to downstream villages. IMD threshold classification.</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon">🌍</div>
+          <div>
+            <div class="module-name">Seismic Monitor</div>
+            <div class="module-desc">Live earthquake feed from USGS. M2.5+ detections within 350km. Village seismic zone classification per BIS IS 1893.</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon">🔥</div>
+          <div>
+            <div class="module-name">Forest Fire Tracker</div>
+            <div class="module-desc">NASA FIRMS VIIRS satellite detections. 375m resolution, updated every 3 hours. Village risk by proximity and forest cover.</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon">📊</div>
+          <div>
+            <div class="module-name">Village Vulnerability Scorer</div>
+            <div class="module-desc">15 villages across 6 districts scored using the NDMA Risk Framework. Live scores — not hardcoded values.</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon">🗺</div>
+          <div>
+            <div class="module-name">Live Hazard Map</div>
+            <div class="module-desc">5 layer toggles — GLOF, Flood, Seismic, Forest Fire. All live data, all on one map.</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon">📄</div>
+          <div>
+            <div class="module-name">PDF Situation Report</div>
+            <div class="module-desc">One-click situation report from live data. Village scores, rainfall summary, recommended actions. Formatted for government use.</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="hero-eyebrow">About Umbrella</div>
+    <!-- Tech Stack -->
+    <div class="section fade-up d3">
+      <div class="section-label">Tech Stack</div>
+      <div class="stack-grid">
+        <div class="stack-card">
+          <div class="stack-card-title">Backend</div>
+          <div class="stack-tags">
+            <span class="stack-tag">Python</span>
+            <span class="stack-tag">Flask</span>
+            <span class="stack-tag">SQLite</span>
+            <span class="stack-tag">Flask-CORS</span>
+            <span class="stack-tag">Railway</span>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-title">Frontend</div>
+          <div class="stack-tags">
+            <span class="stack-tag">HTML5</span>
+            <span class="stack-tag">CSS3</span>
+            <span class="stack-tag">JavaScript</span>
+            <span class="stack-tag">Leaflet.js</span>
+            <span class="stack-tag">GitHub Pages</span>
+          </div>
+        </div>
+        <div class="stack-card" style="grid-column:1/-1">
+          <div class="stack-card-title">Live Data Sources</div>
+          <div class="stack-tags">
+            <span class="stack-tag source">Open-Meteo API</span>
+            <span class="stack-tag source">USGS Earthquake Hazards</span>
+            <span class="stack-tag source">NASA FIRMS VIIRS</span>
+            <span class="stack-tag source">NewsData.io</span>
+            <span class="stack-tag source">ISRO NRSC</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="hero-title">
-Built for the mountains.<br>
-<em>Because the mountains don't wait.</em>
-</div>
+    <!-- Formula -->
+    <div class="section fade-up d4">
+      <div class="section-label">Vulnerability Formula — NDMA Framework</div>
+      <table class="formula-table">
+        <thead>
+          <tr><th>Component</th><th>Factor</th><th>Max</th><th>Scoring</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="component-tag tag-h">Hazard</span></td>
+            <td>Live Rainfall (48hr)</td>
+            <td class="pts">30</td>
+            <td>≥115mm=30 · 65–115mm=18 · &lt;65mm=6<div class="scoring">Dynamic — updates with weather</div></td>
+          </tr>
+          <tr>
+            <td><span class="component-tag tag-h">Hazard</span></td>
+            <td>GLOF Travel Time</td>
+            <td class="pts">20</td>
+            <td>&lt;20min=20 · &lt;40=15 · &lt;60=10 · &lt;90=5</td>
+          </tr>
+          <tr>
+            <td><span class="component-tag tag-v">Vulnerability</span></td>
+            <td>Road Access Routes</td>
+            <td class="pts">15</td>
+            <td>1 route=15 · 2 routes=8 · 3+ routes=0<div class="scoring">Permanent geographic fact</div></td>
+          </tr>
+          <tr>
+            <td><span class="component-tag tag-v">Vulnerability</span></td>
+            <td>Historical Event</td>
+            <td class="pts">15</td>
+            <td>Yes=15 · No=0</td>
+          </tr>
+          <tr>
+            <td><span class="component-tag tag-e">Exposure</span></td>
+            <td>Population</td>
+            <td class="pts">20</td>
+            <td>&gt;10k=20 · &gt;5k=16 · &gt;1k=12 · &gt;500=8 · ≤500=4</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px;font-family:var(--mono)">Risk Classification: Score ≥70 = HIGH · 45–69 = MEDIUM · &lt;45 = LOW</p>
+    </div>
 
-<div class="hero-sub">
-A multi-hazard early warning system for the Indian Himalayan Region connecting live satellite data to village-level disaster response.
-</div>
-
-</div>
-
-<div class="page">
-
-<div class="section">
-
-<div class="section-label">The Problem</div>
-
-<p class="problem-text">
-The Indian Himalayan Region faces accelerating disasters — glacial lake outbursts, flash floods, forest fires and earthquakes.
-Umbrella connects live hazard data to village-level awareness so responders can understand risk quickly.
-</p>
-
-</div>
-
-<div class="section">
-
-<div class="section-label">What Umbrella Does</div>
-
-<div class="modules-grid">
-
-<div class="module-item">
-<div class="module-icon">🌧</div>
-<div>
-<div class="module-name">Flood & GLOF Risk</div>
-<div class="module-desc">48hr rainfall monitoring and glacial lake flood travel analysis.</div>
-</div>
-</div>
-
-<div class="module-item">
-<div class="module-icon">🌍</div>
-<div>
-<div class="module-name">Seismic Monitor</div>
-<div class="module-desc">Live earthquake detection using global seismic feeds.</div>
-</div>
-</div>
-
-<div class="module-item">
-<div class="module-icon">🔥</div>
-<div>
-<div class="module-name">Forest Fire Tracker</div>
-<div class="module-desc">Satellite fire detections across Himalayan forests.</div>
-</div>
-</div>
-
-<div class="module-item">
-<div class="module-icon">📊</div>
-<div>
-<div class="module-name">Village Vulnerability</div>
-<div class="module-desc">Risk scoring using NDMA hazard vulnerability exposure framework.</div>
-</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="section">
-
-<div class="section-label">Built By</div>
-
-<div class="builder-card">
-
-<div class="builder-avatar">
-<img src="anubhav.png" alt="Anubhav Padiyar">
-</div>
-
-<div>
-
-<div class="builder-name">Anubhav Padiyar</div>
-
-<div class="builder-title">
-B.Tech Computer Science and Engineering<br>
-<span style="font-size:12px;color:var(--muted2);">
-Building data-driven disaster intelligence for the Himalayas.
-</span>
-</div>
-
-<div class="builder-links">
-
-<a class="builder-link" href="https://github.com/AnubhavPadiyar" target="_blank">
-GitHub
-</a>
-
-<a class="builder-link" href="https://www.linkedin.com/in/anubhav-padiyar-b9235237b" target="_blank">
-LinkedIn
-</a>
-
-<a class="builder-link" href="mailto:anubhavpadiyar@gmail.com">
-Email
-</a>
-
-</div>
-
-<p class="note">
-Open Source Project • Built for the Indian Himalayan Region
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</body>
-</html>
+    <!-- Builder -->
+    <div class="section fade-up d5">
+      <div class="section-label">Built By</div>
+      <div class="builder-card">
+        <div class="builder-avatar"><img src="anubhav.png" alt="Anubhav Padiyar"></div>
+        <div>
+          <div class="builder-name">Anubhav Padiyar</div>
+          <div class="builder-title">B.Tech Computer Science and Engineering</div>
+          <div class="builder-links">
+            <a class="builder-link" href="https://github.com/AnubhavPadiyar" target="_blank">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </a>
+            <a class="builder-link" href="https://www.linkedin.com/in/anubhav-padiyar-b9235237b" target="_blank">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a class="builder-link" href="/cdn-cgi/l/email-protection#6d0c03180f050c1b1d0c0904140c1f2d0a000c0401430e0200">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+              <span class="__cf_email__" data-cfemail="3f5e514a5d575e494f5e5b56465e4d7f58525
