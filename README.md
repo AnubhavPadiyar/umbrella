@@ -14,9 +14,11 @@
 | **⚡ Resource Recommender** | [anubhavpadiyar.github.io/umbrella/resources.html](https://anubhavpadiyar.github.io/umbrella/resources.html) |
 | **🌍 Seismic Monitor** | [anubhavpadiyar.github.io/umbrella/earthquake.html](https://anubhavpadiyar.github.io/umbrella/earthquake.html) |
 | **🔥 Forest Fire Monitor** | [anubhavpadiyar.github.io/umbrella/fire.html](https://anubhavpadiyar.github.io/umbrella/fire.html) |
+| **🌊 Dam Risk** | [anubhavpadiyar.github.io/umbrella/dam.html](https://anubhavpadiyar.github.io/umbrella/dam.html) |
+| **💧 River Monitor** | [anubhavpadiyar.github.io/umbrella/river.html](https://anubhavpadiyar.github.io/umbrella/river.html) |
 | **📋 Incident Log** | [anubhavpadiyar.github.io/umbrella/incidents.html](https://anubhavpadiyar.github.io/umbrella/incidents.html) |
 | **📄 PDF Situation Report** | [anubhavpadiyar.github.io/umbrella/report.html](https://anubhavpadiyar.github.io/umbrella/report.html) |
-| **🔌 Backend API** | [web-production-517aa.up.railway.app](https://web-production-517aa.up.railway.app) |
+| **🔌 Backend API** | [umbrella-0a7v.onrender.com](https://umbrella-0a7v.onrender.com) |
 
 ---
 
@@ -32,7 +34,7 @@ Umbrella fills that gap.
 
 ## What Umbrella Does
 
-A full-stack multi-hazard disaster intelligence platform built for district-level emergency response in the Uttarakhand Himalayan Region. Four live data sources. Five hazard modules. One unified dashboard.
+A full-stack multi-hazard disaster intelligence platform built for district-level emergency response in the Uttarakhand Himalayan Region. Five live data sources. Eight hazard modules. One unified dashboard.
 
 ### 🌧 Flood & GLOF Risk
 - 8 real glacial lake markers with GLOF travel times to nearest villages
@@ -44,27 +46,37 @@ A full-stack multi-hazard disaster intelligence platform built for district-leve
 - 15 real Uttarakhand villages scored using the NDMA Risk Framework
 - Scores driven by **live rainfall data** — not hardcoded values
 - Formula: Hazard (50pts) + Vulnerability (30pts) + Exposure (20pts)
+- Seasonal population multiplier — Char Dham pilgrim villages get 30x population during May–November
 - Filter by risk level, threat type, district
 
 ### 🌍 Seismic Monitor
 - Live earthquake feed from USGS Earthquake Hazards Program
-- M2.5+ detections within 350km of Uttarakhand — updated every few hours
+- M2.5+ detections within 350km of Uttarakhand
 - Village seismic zone classification (Zone III / IV / V) per BIS IS 1893
 - Haversine distance from each quake epicenter to nearest village
-- Historical reference: 1991 Uttarkashi M6.8, 1999 Chamoli M6.4
 
 ### 🔥 Forest Fire Monitor
 - Live active fire detections from NASA FIRMS (VIIRS SNPP satellite)
 - 375m resolution, updated every 3 hours
 - Village fire risk scored by proximity to active fires + forest cover %
 - Forest cover data from Forest Survey of India 2021
-- Interactive fire map with FRP (Fire Radiative Power) intensity
+
+### 🌊 Dam Risk Module
+- 5 major dams: Tehri, Maneri Bhali, Vishnu Prayag, Srinagar, Koteshwar
+- Structural risk assessment: height, capacity, seismic zone, age
+- Downstream impact zones with estimated flood travel times
+- Population at risk per downstream settlement
+
+### 💧 River Discharge Monitor
+- Live discharge data for 7 Himalayan rivers from Open-Meteo Flood API
+- Bhagirathi · Alaknanda · Mandakini · Pindar · Kali · Yamuna · Tons
+- 7-day average and peak discharge
+- Classified against historical flood thresholds per river
 
 ### 🗺 Live Hazard Risk Map
 - 5 layer toggles: GLOF · Flood · Both · Seismic · Forest Fire
 - Seismic layer: village markers colored by zone (red=V, orange=IV, green=III)
 - Fire layer: NASA FIRMS hotspots plotted in real time
-- Flood layer: district polygons colored by live 48hr rainfall
 
 ### ⚡ Resource Recommender
 - NDRF, SDRF, helicopter and hospital status tracking
@@ -72,6 +84,7 @@ A full-stack multi-hazard disaster intelligence platform built for district-leve
 - WhatsApp alert generator in English and Hindi
 
 ### 📋 Incident Log
+- Persistent backend storage — saved to SQLite, not browser localStorage
 - Manual decision logging (NDRF deployed, evacuation ordered, etc.)
 - Auto-detects risk level changes and logs them automatically
 - Timestamped feed, filterable by manual / auto entries
@@ -81,11 +94,6 @@ A full-stack multi-hazard disaster intelligence platform built for district-leve
 - Includes: risk summary, village scores table, rainfall status, recommended actions
 - Formatted for government use — downloadable as PDF
 
-### 🔬 Methodology
-- Plain language explanation for field officers
-- Technical detail for reviewers: full NDMA formula, data sources, known limitations
-- Kedarnath 2013 backtest with all 5 scoring factors documented
-
 ### 📰 Live Disaster News
 - Live Uttarakhand disaster and weather news from NewsData.io
 - Floods, landslides, fires, earthquakes, snowfall — updated on every load
@@ -93,7 +101,7 @@ A full-stack multi-hazard disaster intelligence platform built for district-leve
 ### ⚙ Admin Panel
 - Password-protected
 - Add, edit, delete villages directly from browser
-- Auto-migrates database schema on Railway deployment
+- Auto-migrates database schema on deployment
 
 ---
 
@@ -102,14 +110,15 @@ A full-stack multi-hazard disaster intelligence platform built for district-leve
 ```
 Browser (HTML · CSS · JavaScript)
          ↕  JSON over HTTP
-Flask API Server — Railway
+Flask API Server — Render
     ↕           ↕           ↕           ↕
 SQLite DB   Open-Meteo   USGS API   NASA FIRMS
-(villages)  (rainfall)  (quakes)    (fires)
+(villages   (rainfall +  (quakes)    (fires)
++incidents)  flood)
 ```
 
 **Frontend:** HTML5 · CSS3 · JavaScript · Leaflet.js — hosted on GitHub Pages  
-**Backend:** Python · Flask · Flask-CORS — hosted on Railway  
+**Backend:** Python · Flask · Flask-CORS — hosted on Render  
 **Database:** SQLite  
 **Data Sources:** Open-Meteo API · USGS Earthquake Hazards Program · NASA FIRMS · NewsData.io · ISRO NRSC
 
@@ -123,8 +132,10 @@ SQLite DB   Open-Meteo   USGS API   NASA FIRMS
 | Monsoon Flooding | ✅ Live | Open-Meteo API |
 | Earthquake / Seismic | ✅ Live | USGS Earthquake Hazards Program |
 | Forest Fire | ✅ Live | NASA FIRMS VIIRS SNPP |
+| Dam Risk | ✅ Static + Seismic | CWC India data |
+| River Discharge | ✅ Live | Open-Meteo Flood API |
 | Avalanche | 🔄 Planned | SRTM DEM + IMD snowpack |
-| Tehri Dam breach | 🔄 Planned | CWC reservoir levels |
+| Tehri Dam Live Level | 🔄 Planned | CWC live gauge |
 
 ---
 
@@ -170,6 +181,8 @@ Server runs at `http://localhost:5001`. Open `index.html` in your browser.
 |--------|-----|---------|
 | Population | 20pts | >10k=20 · >5k=16 · >1k=12 · >500=8 · ≤500=4 |
 
+**Note:** Pilgrimage villages (Kedarnath, Badrinath, Gangotri etc.) use 30x population multiplier during May–November (Char Dham season).
+
 **Risk Classification:** ≥70 = HIGH · 45–69 = MEDIUM · <45 = LOW
 
 ---
@@ -185,20 +198,17 @@ Server runs at `http://localhost:5001`. Open `index.html` in your browser.
 | Population | 1,200 permanent residents | 8pts |
 | **Total Score** | | **83 / 100 — HIGH ✅** |
 
-Umbrella correctly classifies Kedarnath as HIGH RISK under 2013 conditions.
-
-**Known Limitation:** Formula uses permanent population. During Char Dham season (May–June), Kedarnath hosts 40,000–50,000 pilgrims — actual population at risk is 40x higher. Seasonal multiplier planned.
+**Known Limitation:** Formula uses permanent population. During Char Dham season, Kedarnath hosts 40,000–50,000 pilgrims. Seasonal multiplier now implemented.
 
 ---
 
 ## Roadmap
 
-- [ ] Seasonal population multiplier for pilgrimage towns
 - [ ] Mobile responsive design
-- [ ] CWC river gauge integration
-- [ ] Tehri Dam risk module
-- [ ] SMS/WhatsApp alert gateway
+- [ ] CWC live river gauge integration
+- [ ] Tehri Dam live reservoir level
 - [ ] Himachal Pradesh expansion
+- [ ] SMS/WhatsApp alert gateway
 - [ ] Auto-refresh every 15 minutes
 - [ ] Avalanche module
 
@@ -209,6 +219,7 @@ Umbrella correctly classifies Kedarnath as HIGH RISK under 2013 conditions.
 **Anubhav Padiyar** — B.Tech Computer Science and Engineering
 
 GitHub: [github.com/AnubhavPadiyar](https://github.com/AnubhavPadiyar)  
-LinkedIn: [linkedin.com/in/anubhav-padiyar-b9235237b](https://www.linkedin.com/in/anubhav-padiyar-b9235237b)
+LinkedIn: [linkedin.com/in/anubhav-padiyar-b9235237b](https://www.linkedin.com/in/anubhav-padiyar-b9235237b)  
+Email: anubhavpadiyar@gmail.com
 
 ---
