@@ -68,11 +68,6 @@
       <li><a href="map.html" class="active">Risk Map</a></li>
       <li><a href="vulnerability.html">Vulnerability</a></li>
       <li><a href="resources.html">Resources</a></li>
-      <li><a href="earthquake.html">Seismic</a></li>
-      <li><a href="fire.html">Forest Fire</a></li>
-      <li><a href="incidents.html">Incident Log</a></li>
-      <li><a href="methodology.html">Methodology</a></li>
-      <li><a href="report.html">Report</a></li>
       <li><a href="admin.html">Admin</a></li>
     </ul>
   </nav>
@@ -85,11 +80,9 @@
       </div>
       <div class="divider"></div>
       <div class="layer-btns">
-        <button class="layer-btn active" id="btn-glof"    onclick="showLayer('glof')">❄ GLOF Risk</button>
-        <button class="layer-btn"        id="btn-flood"   onclick="showLayer('flood')">🌧 Flood Risk</button>
-        <button class="layer-btn"        id="btn-both"    onclick="showLayer('both')">⚡ Both Layers</button>
-        <button class="layer-btn"        id="btn-seismic" onclick="showLayer('seismic')">🌍 Seismic</button>
-        <button class="layer-btn"        id="btn-fire"    onclick="showLayer('fire')">🔥 Forest Fire</button>
+        <button class="layer-btn active" id="btn-glof"  onclick="showLayer('glof')">❄ GLOF Risk</button>
+        <button class="layer-btn"        id="btn-flood" onclick="showLayer('flood')">🌧 Flood Risk</button>
+        <button class="layer-btn"        id="btn-both"  onclick="showLayer('both')">⚡ Both Layers</button>
       </div>
     </div>
     <span class="data-status loading" id="data-status">⏳ Fetching live rainfall...</span>
@@ -175,68 +168,12 @@
 
     glofLayer.addTo(map);
 
-    // Seismic layer — village markers colored by zone
-    var seismicVillages = [
-      {name:"Kedarnath",       lat:30.7346,lng:79.0669,zone:"V", district:"Rudraprayag"},
-      {name:"Gangotri",        lat:30.9940,lng:79.0770,zone:"V", district:"Uttarkashi"},
-      {name:"Dharali",         lat:30.9500,lng:78.9800,zone:"V", district:"Uttarkashi"},
-      {name:"Joshimath",       lat:30.5580,lng:79.5640,zone:"V", district:"Chamoli"},
-      {name:"Raini",           lat:30.5200,lng:79.7200,zone:"V", district:"Chamoli"},
-      {name:"Tapovan",         lat:30.4900,lng:79.6700,zone:"V", district:"Chamoli"},
-      {name:"Govindghat",      lat:30.5400,lng:79.6600,zone:"V", district:"Chamoli"},
-      {name:"Badrinath",       lat:30.7433,lng:79.4938,zone:"V", district:"Chamoli"},
-      {name:"Mana Village",    lat:30.7700,lng:79.5500,zone:"V", district:"Chamoli"},
-      {name:"Munsiyari",       lat:30.0678,lng:80.2378,zone:"IV",district:"Pithoragarh"},
-      {name:"Pithoragarh Town",lat:29.5829,lng:80.2181,zone:"IV",district:"Pithoragarh"},
-      {name:"Uttarkashi Town", lat:30.7268,lng:78.4354,zone:"V", district:"Uttarkashi"},
-      {name:"Bhatwari",        lat:30.8500,lng:78.6000,zone:"V", district:"Uttarkashi"},
-      {name:"Ghansali",        lat:30.4200,lng:78.6500,zone:"IV",district:"Tehri Garhwal"},
-      {name:"Haridwar",        lat:29.9457,lng:78.1642,zone:"III",district:"Haridwar"},
-    ];
-    var zoneColor = {"V":"#c0392b","IV":"#d35400","III":"#1e7e4a"};
-    var zoneRisk  = {"V":"HIGH","IV":"MEDIUM","III":"LOW"};
-
-    var seismicLayer = L.layerGroup();
-    seismicVillages.forEach(function(v){
-      var col = zoneColor[v.zone];
-      var risk = zoneRisk[v.zone];
-      var m = L.circleMarker([v.lat,v.lng],{radius:8,fillColor:col,color:'#ffffff',weight:2,fillOpacity:0.9});
-      m.bindPopup(
-        '<div class="popup-title">🌍 '+v.name+'</div>'+
-        '<div class="popup-row"><span class="popup-label">District</span><span class="popup-val">'+v.district+'</span></div>'+
-        '<div class="popup-row"><span class="popup-label">Seismic Zone</span><span class="popup-risk '+riskClass(risk)+'">Zone '+v.zone+'</span></div>'+
-        '<div class="popup-row"><span class="popup-label">Risk Level</span><span class="popup-risk '+riskClass(risk)+'">'+risk+'</span></div>'+
-        '<div class="popup-note">BIS IS 1893 · <a href="earthquake.html" style="color:var(--navy)">View full seismic data →</a></div>'
-      );
-      m.addTo(seismicLayer);
-    });
-
-    var fireLayer = L.layerGroup();
-
-    // Fetch fire data and add to map layer
-    fetch("https://web-production-517aa.up.railway.app/fire")
-      .then(function(r){return r.json();})
-      .then(function(data){
-        data.fires.forEach(function(f){
-          var col = (f.frp||0)>100?'#c0392b':(f.frp||0)>30?'#e67e22':'#f39c12';
-          var m = L.circleMarker([f.lat,f.lng],{radius:7,fillColor:col,color:'#fff',weight:1,fillOpacity:0.85});
-          m.bindPopup('<b>🔥 Active Fire</b><br>FRP: '+f.frp+' MW<br>'+f.acq_date+' '+f.acq_time+'<br>Confidence: '+f.confidence);
-          m.addTo(fireLayer);
-        });
-      })
-      .catch(function(){});
-
     function showLayer(type){
-      map.removeLayer(glofLayer);
-      map.removeLayer(floodLayer);
-      map.removeLayer(seismicLayer);
-      map.removeLayer(fireLayer);
-      ['btn-glof','btn-flood','btn-both','btn-seismic','btn-fire'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-      if(type==='glof')   {glofLayer.addTo(map);document.getElementById('btn-glof').classList.add('active');}
-      if(type==='flood')  {floodLayer.addTo(map);document.getElementById('btn-flood').classList.add('active');}
-      if(type==='both')   {glofLayer.addTo(map);floodLayer.addTo(map);document.getElementById('btn-both').classList.add('active');}
-      if(type==='seismic'){seismicLayer.addTo(map);document.getElementById('btn-seismic').classList.add('active');}
-      if(type==='fire')   {fireLayer.addTo(map);document.getElementById('btn-fire').classList.add('active');}
+      map.removeLayer(glofLayer);map.removeLayer(floodLayer);
+      ['btn-glof','btn-flood','btn-both'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+      if(type==='glof'){glofLayer.addTo(map);document.getElementById('btn-glof').classList.add('active');}
+      if(type==='flood'){floodLayer.addTo(map);document.getElementById('btn-flood').classList.add('active');}
+      if(type==='both'){glofLayer.addTo(map);floodLayer.addTo(map);document.getElementById('btn-both').classList.add('active');}
     }
 
     var legend=L.control({position:'bottomright'});

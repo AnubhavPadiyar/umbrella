@@ -105,7 +105,6 @@
       <li><a href="resources.html">Resources</a></li>
       <li><a href="incidents.html" class="active">Incident Log</a></li>
       <li><a href="methodology.html">Methodology</a></li>
-      <li><a href="report.html">Report</a></li>
       <li><a href="admin.html">Admin</a></li>
     </ul>
   </nav>
@@ -206,45 +205,34 @@
 
   <script>
     var BACKEND = "https://web-production-517aa.up.railway.app";
+    var LOG_KEY  = "umbrella_incident_log";
     var currentFilter = 'all';
     var lastScores = {};
-    var allEntries = [];
 
-    // ── FETCH LOG FROM BACKEND ──────────────────────────────
-    function loadFeed(){
-      fetch(BACKEND+"/incidents")
-        .then(function(r){return r.json();})
-        .then(function(data){
-          allEntries = data.incidents || [];
-          renderFeed();
-        })
-        .catch(function(){
-          document.getElementById('log-feed').innerHTML =
-            '<div class="empty-state"><div class="icon">⚠</div><p>Could not load incident log — backend offline.</p></div>';
-        });
+    // Load log from localStorage
+    function getLog(){
+      try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }
+      catch(e){ return []; }
     }
 
-    // ── ADD ENTRY TO BACKEND ────────────────────────────────
+    function saveLog(log){
+      localStorage.setItem(LOG_KEY, JSON.stringify(log));
+    }
+
     function addEntry(entry){
-      entry.time = entry.time || new Date().toISOString();
-      fetch(BACKEND+"/incidents", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(entry)
-      })
-      .then(function(r){return r.json();})
-      .then(function(data){
-        entry.id = data.id;
-        allEntries.unshift(entry);
-        renderFeed();
-      })
-      .catch(function(){ showToast('⚠ Could not save entry','error'); });
+      var log = getLog();
+      entry.id = Date.now();
+      entry.time = new Date().toISOString();
+      log.unshift(entry);
+      if(log.length > 200) log = log.slice(0,200);
+      saveLog(log);
+      renderFeed();
     }
 
-    // ── RENDER FEED ─────────────────────────────────────────
     function renderFeed(){
-      var filtered = currentFilter==='all' ? allEntries :
-                     allEntries.filter(function(e){return e.source===currentFilter;});
+      var log = getLog();
+      var filtered = currentFilter==='all' ? log :
+                     log.filter(function(e){return e.source===currentFilter;});
 
       document.getElementById('feed-count').innerText =
         filtered.length + ' entr' + (filtered.length===1?'y':'ies') +
@@ -300,12 +288,9 @@
     }
 
     function deleteEntry(id){
-      fetch(BACKEND+"/incidents/"+id, {method:"DELETE"})
-        .then(function(){
-          allEntries = allEntries.filter(function(e){return e.id!==id;});
-          renderFeed();
-        })
-        .catch(function(){ showToast('⚠ Could not delete entry','error'); });
+      var log = getLog().filter(function(e){return e.id!==id;});
+      saveLog(log);
+      renderFeed();
     }
 
     function filterLog(type, btn){
@@ -316,16 +301,9 @@
     }
 
     function clearLog(){
-      if(!confirm('Clear all log entries? This cannot be undone.')) return;
-      var manualEntries = allEntries.filter(function(e){return e.source==='manual';});
-      var deleted = 0;
-      manualEntries.forEach(function(e){
-        fetch(BACKEND+"/incidents/"+e.id, {method:"DELETE"});
-        deleted++;
-      });
-      allEntries = allEntries.filter(function(e){return e.source!=='manual';});
+      if(!confirm('Clear all log entries?')) return;
+      saveLog([]);
       renderFeed();
-      showToast('✓ '+deleted+' manual entries cleared','success');
     }
 
     function showToast(msg,type){
@@ -334,7 +312,7 @@
       setTimeout(function(){t.style.display='none';},2500);
     }
 
-    // ── AUTO-LOG SCORE CHANGES ──────────────────────────────
+    // Auto-log score changes from live API
     function checkScores(){
       fetch(BACKEND+"/villages")
         .then(function(r){return r.json();})
@@ -357,6 +335,21 @@
             }
             lastScores[v.name] = v.risk_level;
           });
+
+          // First load — log current high risk villages as system entry
+          if(Object.keys(lastScores).length === data.villages.length){
+            var log = getLog();
+            var hasSystem = log.some(function(e){return e.source==='system'&&e.text.indexOf('System initialised')>=0;});
+            if(!hasSystem){
+              var high = data.villages.filter(function(v){return v.risk_level==='HIGH';});
+              addEntry({
+                source:'system',
+                text:'System initialised · '+data.villages.length+' villages loaded · '+high.length+' at HIGH risk',
+                risk:null,
+                officer:'Umbrella v2.0'
+              });
+            }
+          }
         })
         .catch(function(){
           document.getElementById('status-badge').innerText='🔴 Server Offline';
@@ -364,9 +357,9 @@
     }
 
     // Init
-    loadFeed();
+    renderFeed();
     checkScores();
-    setInterval(checkScores, 5 * 60 * 1000);
+    setInterval(checkScores, 5 * 60 * 1000); // check every 5 mins
   </script>
 
 </body>

@@ -482,14 +482,7 @@
       <li><a href="map.html">Risk Map</a></li>
       <li><a href="vulnerability.html">Vulnerability</a></li>
       <li><a href="resources.html">Resources</a></li>
-      <li><a href="earthquake.html">Seismic</a></li>
-      <li><a href="fire.html">Forest Fire</a></li>
-      <li><a href="dam.html">Dam Risk</a></li>
-      <li><a href="river.html">Rivers</a></li>
-      <li><a href="incidents.html">Incident Log</a></li>
-      <li><a href="report.html">Report</a></li>
       <li><a href="admin.html">Admin</a></li>
-      <li><a href="about.html" style="color:rgba(255,255,255,0.4);">About</a></li>
     </ul>
   </nav>
 
@@ -626,14 +619,18 @@
         </div>
       </div>
 
-      <!-- Live Disaster News -->
       <div class="side-card">
-        <div class="side-card-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>Live Disaster News</span>
-          <span id="news-badge" style="font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(26,39,68,0.08);color:var(--muted2);">Loading...</span>
-        </div>
-        <div id="news-feed" style="margin-top:8px;">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);padding:8px 0;">Fetching latest news...</div>
+        <div class="side-card-title">About Umbrella</div>
+        <p class="about-text">
+          Multi-hazard early warning dashboard covering GLOF and flood risk
+          across the Uttarakhand Himalayan region. Validated against the
+          2013 Kedarnath disaster (score: 85/100 — HIGH).
+        </p>
+        <div>
+          <span class="tag">Open-Meteo API</span>
+          <span class="tag">Flask + SQLite</span>
+          <span class="tag">IMD Thresholds</span>
+          <span class="tag">ISRO Coordinates</span>
         </div>
       </div>
 
@@ -641,23 +638,12 @@
   </div>
 
   <div class="footer">
-    <div class="footer-l">Umbrella Early Warning System · Uttarakhand · Built by Anubhav Padiyar, B.Tech Computer Science and Engineering</div>
+    <div class="footer-l">Umbrella Early Warning System · Uttarakhand · Built by Anubhav Padiyar, Civil Engineering</div>
     <div class="footer-r">github.com/AnubhavPadiyar/umbrella</div>
   </div>
 
   <script>
     var BACKEND = "https://web-production-517aa.up.railway.app";
-
-    // Retry fetch — handles Railway cold starts
-    function fetchWithRetry(url, retries, delay){
-      return fetch(url).catch(function(err){
-        if(retries > 0){
-          return new Promise(function(resolve){setTimeout(resolve, delay);})
-            .then(function(){return fetchWithRetry(url, retries-1, delay*1.5);});
-        }
-        throw err;
-      });
-    }
 
     var RIVERS = {
       "Uttarkashi":    "Bhagirathi, Yamuna",
@@ -692,7 +678,7 @@
       }, 16);
     }
 
-    fetchWithRetry(BACKEND + "/rainfall", 4, 3000)
+    fetch(BACKEND + "/rainfall")
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var districts = data.districts;
@@ -760,48 +746,6 @@
         document.getElementById('threat-title').innerText = 'Backend server offline';
         document.getElementById('threat-desc').innerText  = 'Run: python3 server.py in Terminal';
         document.getElementById('ticker-text').innerText  = 'Connection failed — backend not responding';
-      });
-
-    // Live Disaster News — NewsData.io
-    var NEWS_KEY = "pub_3c4f8f5621704ac3831f4761df5b353d";
-    var NEWS_URL = "https://newsdata.io/api/1/news?apikey="+NEWS_KEY+"&q=Uttarakhand+flood+OR+Uttarakhand+landslide+OR+Uttarakhand+fire+OR+Uttarakhand+earthquake+OR+Uttarakhand+disaster+OR+Uttarakhand+snowfall+OR+Uttarakhand+weather+OR+Uttarakhand+rain+OR+Uttarakhand+temperature&country=in&language=en&size=6";
-
-    var newsController = new AbortController();
-    var newsTimeout = setTimeout(function(){ newsController.abort(); }, 8000);
-
-    fetch(NEWS_URL, {signal: newsController.signal})
-      .then(function(r){ clearTimeout(newsTimeout); return r.json(); })
-      .then(function(data){
-        var badge = document.getElementById('news-badge');
-        if(!data.results || data.results.length===0){
-          badge.innerText='No results';
-          document.getElementById('news-feed').innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);padding:8px 0;">No recent news found</div>';
-          return;
-        }
-        badge.style.background='rgba(30,126,74,0.08)';
-        badge.style.color='var(--green)';
-        badge.innerText='🟢 Live';
-
-        var html='';
-        data.results.forEach(function(article){
-          var date = article.pubDate ? article.pubDate.split(' ')[0] : '';
-          var source = article.source_id || '';
-          html+=
-            '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'+
-              '<a href="'+(article.link||'#')+'" target="_blank" style="font-size:12px;font-weight:600;color:var(--navy);text-decoration:none;line-height:1.5;display:block;margin-bottom:4px;">'+
-                article.title+
-              '</a>'+
-              '<div style="display:flex;gap:10px;">'+
-                '<span style="font-family:var(--mono);font-size:10px;color:var(--muted2);">'+date+'</span>'+
-                '<span style="font-family:var(--mono);font-size:10px;color:var(--muted2);">'+source+'</span>'+
-              '</div>'+
-            '</div>';
-        });
-        document.getElementById('news-feed').innerHTML = html;
-      })
-      .catch(function(){
-        document.getElementById('news-badge').innerText='Unavailable';
-        document.getElementById('news-feed').innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);padding:8px 0;">News unavailable — check live.ndtv.com</div>';
       });
   </script>
 
